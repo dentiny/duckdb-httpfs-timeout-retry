@@ -13,9 +13,9 @@ LOAD httpfs_timeout_retry;
 
 The standard `httpfs` extension in DuckDB provides global timeout and retry settings (via `http_timeout` and `http_retries`) that apply uniformly to **all** HTTP operations. However, different operations have fundamentally different characteristics and requirements.
 
-When using a single timeout value for all operations, you face a difficult trade-off:
-- **Set timeout too low**: Fast operations like point queries (`stat` calls) work fine, but slower operations like `LIST` (which performs range queries) will frequently timeout
-- **Set timeout too high**: Slower operations succeed, but you waste time waiting for fast operations that should fail quickly when there's a real problem
+For example,
+- list operation usually does range query, and should be expectedly taking more time than point query stat call
+- read request could potentially be served with cache and don't go through any data persistent layer, while it's non-avoidable for write operations
 
 Similarly, retry behavior should differ by operation type.
 This extension solves the problem by allowing users to configure different settings for different operations.
