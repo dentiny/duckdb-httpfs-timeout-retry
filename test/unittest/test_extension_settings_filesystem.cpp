@@ -25,7 +25,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	DatabaseInstance &db_instance = *db.instance;
 	auto &db_config = DBConfig::GetConfig(db_instance);
 
-	db_config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_file_operation_ms",
+	                             "Timeout for file operations (open/read/write) (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
@@ -35,7 +36,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_create_dir_ms", "Timeout for creating directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
+	db_config.AddExtensionOption("httpfs_retries_file_operation",
+	                             "Maximum number of retries for file operations (open/read/write)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_list", "Maximum number of retries for listing directories",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
@@ -82,8 +84,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test custom timeout and retry settings") {
-		db_config.SetOptionByName("httpfs_timeout_open_ms", Value::UBIGINT(60000));
-		db_config.SetOptionByName("httpfs_retries_open", Value::UBIGINT(5));
+		db_config.SetOptionByName("httpfs_timeout_file_operation_ms", Value::UBIGINT(60000));
+		db_config.SetOptionByName("httpfs_retries_file_operation", Value::UBIGINT(5));
 		db_config.SetOptionByName("http_retry_wait_ms", Value::UBIGINT(200));
 		db_config.SetOptionByName("http_retry_backoff", Value::FLOAT(2.0));
 		record_fs_ptr->ClearRecordedParams();
@@ -102,8 +104,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test OPEN operation") {
-		db_config.SetOptionByName("httpfs_timeout_open_ms", Value::UBIGINT(10000));
-		db_config.SetOptionByName("httpfs_retries_open", Value::UBIGINT(2));
+		db_config.SetOptionByName("httpfs_timeout_file_operation_ms", Value::UBIGINT(10000));
+		db_config.SetOptionByName("httpfs_retries_file_operation", Value::UBIGINT(2));
 		record_fs_ptr->ClearRecordedParams();
 
 		{

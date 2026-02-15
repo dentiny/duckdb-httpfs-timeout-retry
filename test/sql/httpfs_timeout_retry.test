@@ -11,8 +11,8 @@ SELECT COUNT(*) FROM read_csv_auto('https://raw.githubusercontent.com/dentiny/du
 
 # Test reading CSV with custom timeout settings
 statement ok
-SET httpfs_timeout_open_ms = 60000;
-SET httpfs_retries_open = 5;
+SET httpfs_timeout_file_operation_ms = 60000;
+SET httpfs_retries_file_operation = 5;
 
 query I
 SELECT COUNT(*) FROM read_csv_auto('https://raw.githubusercontent.com/dentiny/duck-read-cache-fs/refs/heads/main/test/data/stock-exchanges.csv');

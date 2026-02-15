@@ -99,7 +99,7 @@ Logger &TimeoutRetryFileOpener::GetLogger() const {
 string TimeoutRetryFileOpener::GetTimeoutSettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return HTTPFS_TIMEOUT_OPEN_MS;
+		return HTTPFS_TIMEOUT_FILE_OPERATION_MS;
 	case HttpfsOperationType::LIST:
 		return HTTPFS_TIMEOUT_LIST_MS;
 	case HttpfsOperationType::DELETE:
@@ -117,7 +117,7 @@ string TimeoutRetryFileOpener::GetTimeoutSettingName() const {
 string TimeoutRetryFileOpener::GetRetrySettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return HTTPFS_RETRIES_OPEN;
+		return HTTPFS_RETRIES_FILE_OPERATION;
 	case HttpfsOperationType::LIST:
 		return HTTPFS_RETRIES_LIST;
 	case HttpfsOperationType::DELETE:

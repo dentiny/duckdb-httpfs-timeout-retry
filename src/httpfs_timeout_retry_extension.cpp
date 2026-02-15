@@ -83,7 +83,8 @@ void LoadInternal(ExtensionLoader &loader) {
 	WrapHttpfsFileSystems(instance);
 
 	// Timeout settings for different HTTP operations (in milliseconds)
-	config.AddExtensionOption(HTTPFS_TIMEOUT_OPEN_MS, "Timeout for opening files (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_FILE_OPERATION_MS,
+	                          "Timeout for file operations (open/read/write) (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	config.AddExtensionOption(HTTPFS_TIMEOUT_LIST_MS, "Timeout for listing directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
@@ -95,7 +96,8 @@ void LoadInternal(ExtensionLoader &loader) {
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 
 	// Retry settings for different HTTP operations
-	config.AddExtensionOption(HTTPFS_RETRIES_OPEN, "Maximum number of retries for opening files",
+	config.AddExtensionOption(HTTPFS_RETRIES_FILE_OPERATION,
+	                          "Maximum number of retries for file operations (open/read/write)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	config.AddExtensionOption(HTTPFS_RETRIES_LIST, "Maximum number of retries for listing directories",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
