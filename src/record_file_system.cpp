@@ -36,8 +36,8 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 	// Determine the per-operation setting names based on operation type
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		timeout_setting_name = HTTPFS_TIMEOUT_OPEN_MS;
-		retry_setting_name = HTTPFS_RETRIES_OPEN;
+		timeout_setting_name = HTTPFS_TIMEOUT_FILE_OPERATION_MS;
+		retry_setting_name = HTTPFS_RETRIES_FILE_OPERATION;
 		break;
 	case HttpfsOperationType::LIST:
 		timeout_setting_name = HTTPFS_TIMEOUT_LIST_MS;
