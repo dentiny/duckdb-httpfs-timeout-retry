@@ -9,5 +9,6 @@ include extension-ci-tools/makefiles/duckdb_extension.Makefile
 
 format-all: format
 	cmake-format -i CMakeLists.txt
+	cmake-format -i test/unittest/CMakeLists.txt
 
 PHONY: format-all

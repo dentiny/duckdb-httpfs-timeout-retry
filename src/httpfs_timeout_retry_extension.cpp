@@ -126,11 +126,11 @@ void LoadInternal(ExtensionLoader &loader) {
 void HttpfsTimeoutRetryExtension::Load(ExtensionLoader &loader) {
 	LoadInternal(loader);
 }
-std::string HttpfsTimeoutRetryExtension::Name() {
+string HttpfsTimeoutRetryExtension::Name() {
 	return "httpfs_timeout_retry";
 }
 
-std::string HttpfsTimeoutRetryExtension::Version() const {
+string HttpfsTimeoutRetryExtension::Version() const {
 #ifdef EXT_VERSION_HTTPFS_TIMEOUT_RETRY
 	return EXT_VERSION_HTTPFS_TIMEOUT_RETRY;
 #else
