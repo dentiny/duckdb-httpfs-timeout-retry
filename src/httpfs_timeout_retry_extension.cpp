@@ -83,17 +83,17 @@ void LoadInternal(ExtensionLoader &loader) {
 	WrapHttpfsFileSystems(instance);
 
 	// Timeout settings for different HTTP operations (in milliseconds)
-	config.AddExtensionOption("httpfs_timeout_open", "Timeout for opening files (in milliseconds)",
+	config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_read", "Timeout for reading files (in milliseconds)",
+	config.AddExtensionOption("httpfs_timeout_read_ms", "Timeout for reading files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_write", "Timeout for writing files (in milliseconds)",
+	config.AddExtensionOption("httpfs_timeout_write_ms", "Timeout for writing files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_list", "Timeout for listing directories (in milliseconds)",
+	config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_delete", "Timeout for deleting files (in milliseconds)",
+	config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_connect", "Timeout for establishing connections (in milliseconds)",
+	config.AddExtensionOption("httpfs_timeout_connect_ms", "Timeout for establishing connections (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 
 	// Retry settings for different HTTP operations

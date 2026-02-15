@@ -18,17 +18,17 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 	DatabaseInstance &db_instance = *db.instance;
 	auto &db_config = DBConfig::GetConfig(db_instance);
 
-	db_config.AddExtensionOption("httpfs_timeout_open", "Timeout for opening files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_read", "Timeout for reading files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_read_ms", "Timeout for reading files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_write", "Timeout for writing files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_write_ms", "Timeout for writing files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_list", "Timeout for listing directories (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_delete", "Timeout for deleting files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_connect", "Timeout for establishing connections (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_connect_ms", "Timeout for establishing connections (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
@@ -44,7 +44,7 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 
 	SECTION("Test OPEN operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_open", Value::UBIGINT(10000));
+		db_config.SetOptionByName("httpfs_timeout_open_ms", Value::UBIGINT(10000));
 		db_config.SetOptionByName("httpfs_retries_open", Value::UBIGINT(2));
 
 		DatabaseFileOpener opener(db_instance);
@@ -62,7 +62,7 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 	}
 
 	SECTION("Test READ operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_read", Value::UBIGINT(20000));
+		db_config.SetOptionByName("httpfs_timeout_read_ms", Value::UBIGINT(20000));
 		db_config.SetOptionByName("httpfs_retries_read", Value::UBIGINT(4));
 
 		DatabaseFileOpener opener(db_instance);
@@ -80,7 +80,7 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 	}
 
 	SECTION("Test WRITE operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_write", Value::UBIGINT(35000));
+		db_config.SetOptionByName("httpfs_timeout_write_ms", Value::UBIGINT(35000));
 		db_config.SetOptionByName("httpfs_retries_write", Value::UBIGINT(8));
 
 		DatabaseFileOpener opener(db_instance);
@@ -98,7 +98,7 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 	}
 
 	SECTION("Test LIST operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_list", Value::UBIGINT(15000));
+		db_config.SetOptionByName("httpfs_timeout_list_ms", Value::UBIGINT(15000));
 		db_config.SetOptionByName("httpfs_retries_list", Value::UBIGINT(6));
 
 		DatabaseFileOpener opener(db_instance);
@@ -116,7 +116,7 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 	}
 
 	SECTION("Test DELETE operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_delete", Value::UBIGINT(25000));
+		db_config.SetOptionByName("httpfs_timeout_delete_ms", Value::UBIGINT(25000));
 		db_config.SetOptionByName("httpfs_retries_delete", Value::UBIGINT(7));
 
 		DatabaseFileOpener opener(db_instance);

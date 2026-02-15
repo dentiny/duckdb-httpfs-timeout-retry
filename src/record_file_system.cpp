@@ -35,31 +35,31 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 	// Determine the per-operation setting names based on operation type
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		timeout_setting_name = "httpfs_timeout_open";
+		timeout_setting_name = "httpfs_timeout_open_ms";
 		retry_setting_name = "httpfs_retries_open";
 		break;
 	case HttpfsOperationType::READ:
-		timeout_setting_name = "httpfs_timeout_read";
+		timeout_setting_name = "httpfs_timeout_read_ms";
 		retry_setting_name = "httpfs_retries_read";
 		break;
 	case HttpfsOperationType::WRITE:
-		timeout_setting_name = "httpfs_timeout_write";
+		timeout_setting_name = "httpfs_timeout_write_ms";
 		retry_setting_name = "httpfs_retries_write";
 		break;
 	case HttpfsOperationType::LIST:
-		timeout_setting_name = "httpfs_timeout_list";
+		timeout_setting_name = "httpfs_timeout_list_ms";
 		retry_setting_name = "httpfs_retries_list";
 		break;
 	case HttpfsOperationType::DELETE:
-		timeout_setting_name = "httpfs_timeout_delete";
+		timeout_setting_name = "httpfs_timeout_delete_ms";
 		retry_setting_name = "httpfs_retries_delete";
 		break;
 	case HttpfsOperationType::CONNECT:
-		timeout_setting_name = "httpfs_timeout_connect";
+		timeout_setting_name = "httpfs_timeout_connect_ms";
 		retry_setting_name = "httpfs_retries_connect";
 		break;
 	default:
-		timeout_setting_name = "httpfs_timeout_open";
+		timeout_setting_name = "httpfs_timeout_open_ms";
 		retry_setting_name = "httpfs_retries_open";
 		break;
 	}
