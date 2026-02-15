@@ -1,12 +1,20 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include "httpfs_timeout_retry_extension.hpp"
+#include <algorithm>
+
 #include "duckdb.hpp"
 #include "duckdb/common/http_util.hpp"
+#include "duckdb/main/extension_manager.hpp"
+#include "duckdb/main/extension_install_info.hpp"
+#include "file_system_timeout_retry_wrapper.hpp"
+#include "httpfs_timeout_retry_extension.hpp"
+#include "httpfs_extension.hpp"
 
 namespace duckdb {
 
 namespace {
+
+constexpr const char *HTTPFS_EXTENSION = "httpfs";
 
 // Default values matching httpfs extension for compatibility
 constexpr uint64_t DEFAULT_TIMEOUT_MS = HTTPParams::DEFAULT_TIMEOUT_SECONDS * 1000;
@@ -14,9 +22,62 @@ constexpr uint64_t DEFAULT_RETRIES = HTTPParams::DEFAULT_RETRIES;
 constexpr uint64_t DEFAULT_RETRY_WAIT_MS = HTTPParams::DEFAULT_RETRY_WAIT_MS;
 constexpr float DEFAULT_RETRY_BACKOFF = HTTPParams::DEFAULT_RETRY_BACKOFF;
 
+// Whether `httpfs` extension has already been loaded.
+bool IsHttpfsExtensionLoaded(DatabaseInstance &db_instance) {
+	auto &extension_manager = db_instance.GetExtensionManager();
+	const auto loaded_extensions = extension_manager.GetExtensions();
+	return std::find(loaded_extensions.begin(), loaded_extensions.end(), HTTPFS_EXTENSION) != loaded_extensions.end();
+}
+
+// Ensure httpfs extension is loaded, loading it if necessary
+void EnsureHttpfsExtensionLoaded(ExtensionLoader &loader, DatabaseInstance &instance) {
+	const bool httpfs_extension_loaded = IsHttpfsExtensionLoaded(instance);
+	if (!httpfs_extension_loaded) {
+		auto httpfs_extension = make_uniq<HttpfsExtension>();
+		httpfs_extension->Load(loader);
+
+		// Register into extension manager to keep compatibility as httpfs.
+		auto &extension_manager = ExtensionManager::Get(instance);
+		auto extension_active_load = extension_manager.BeginLoad(HTTPFS_EXTENSION);
+		// Manually fill in the extension install info to finalize extension load.
+		ExtensionInstallInfo extension_install_info;
+		extension_install_info.mode = ExtensionInstallMode::UNKNOWN;
+		extension_active_load->FinishLoad(extension_install_info);
+	}
+}
+
+void WrapHttpfsFileSystems(DatabaseInstance &instance) {
+	auto &fs = instance.GetFileSystem();
+	auto &extension_manager = ExtensionManager::Get(instance);
+
+	// Wrap httpfs filesystems with timeout/retry wrapper
+	auto http_fs = fs.ExtractSubSystem("HTTPFileSystem");
+	if (http_fs) {
+		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(http_fs)));
+	}
+
+	// Extract and wrap HuggingFaceFileSystem
+	auto hf_fs = fs.ExtractSubSystem("HuggingFaceFileSystem");
+	if (hf_fs) {
+		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(hf_fs)));
+	}
+
+	// Extract and wrap S3FileSystem
+	auto s3_fs = fs.ExtractSubSystem("S3FileSystem");
+	if (s3_fs) {
+		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(s3_fs)));
+	}
+}
+
 void LoadInternal(ExtensionLoader &loader) {
 	auto &instance = loader.GetDatabaseInstance();
 	auto &config = DBConfig::GetConfig(instance);
+
+	// Ensure httpfs extension is loaded to achive 100% compatibility with httpfs extension
+	EnsureHttpfsExtensionLoaded(loader, instance);
+
+	// Wrap all httpfs filesystems with timeout/retry wrapper
+	WrapHttpfsFileSystems(instance);
 
 	// Timeout settings for different HTTP operations (in milliseconds)
 	config.AddExtensionOption("httpfs_timeout_open", "Timeout for opening files (in milliseconds)",
