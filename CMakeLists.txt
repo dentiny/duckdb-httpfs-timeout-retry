@@ -18,7 +18,17 @@ include_directories(duckdb-httpfs/src/include)
 
 set(EXTENSION_SOURCES src/httpfs_timeout_retry_extension.cpp
                       src/file_system_timeout_retry_wrapper.cpp
-                      src/timeout_retry_file_opener.cpp)
+                      src/timeout_retry_file_opener.cpp
+                      duckdb-httpfs/src/create_secret_functions.cpp
+                      duckdb-httpfs/src/crypto.cpp
+                      duckdb-httpfs/src/hash_functions.cpp
+                      duckdb-httpfs/src/hffs.cpp
+                      duckdb-httpfs/src/http_state.cpp
+                      duckdb-httpfs/src/httpfs.cpp
+                      duckdb-httpfs/src/httpfs_curl_client.cpp
+                      duckdb-httpfs/src/httpfs_extension.cpp
+                      duckdb-httpfs/src/httpfs_httplib_client.cpp
+                      duckdb-httpfs/src/s3fs.cpp)
 
 build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
 build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})

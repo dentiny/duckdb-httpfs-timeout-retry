@@ -18,61 +18,26 @@ std::string FileSystemTimeoutRetryWrapper::GetName() const {
 	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
 }
 
-//===--------------------------------------------------------------------===//
-// IO operations
-//===--------------------------------------------------------------------===//
-
-// Open operations
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
                                                                 optional_ptr<FileOpener> opener) {
-	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::OPEN);
-		return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
-	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
-	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::OPEN);
-	return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
+	return OpenFileExtended(OpenFileInfo(path), flags, opener);
 }
 
-unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const OpenFileInfo &path, FileOpenFlags flags,
-                                                                optional_ptr<FileOpener> opener) {
-	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::OPEN);
-		return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
-	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
-	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::OPEN);
-	return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
-}
-
-// Read/Write operations
 void FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
-	// Note: Read/Write operations use the FileHandle which was created with timeout settings during OpenFile
-	// The timeout for read operations is set when the handle is opened, so we delegate directly
 	inner_filesystem->Read(handle, buffer, nr_bytes, location);
 }
 
 void FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
-	// Note: Read/Write operations use the FileHandle which was created with timeout settings during OpenFile
-	// The timeout for write operations is set when the handle is opened, so we delegate directly
 	inner_filesystem->Write(handle, buffer, nr_bytes, location);
 }
 
 int64_t FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes) {
-	// Note: Read/Write operations use the FileHandle which was created with timeout settings during OpenFile
-	// The timeout for read operations is set when the handle is opened, so we delegate directly
 	return inner_filesystem->Read(handle, buffer, nr_bytes);
 }
 
 int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes) {
-	// Note: Read/Write operations use the FileHandle which was created with timeout settings during OpenFile
-	// The timeout for write operations is set when the handle is opened, so we delegate directly
 	return inner_filesystem->Write(handle, buffer, nr_bytes);
 }
-
-// File info operations
 int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
 	return inner_filesystem->GetFileSize(handle);
 }
@@ -89,7 +54,6 @@ FileType FileSystemTimeoutRetryWrapper::GetFileType(FileHandle &handle) {
 	return inner_filesystem->GetFileType(handle);
 }
 
-// Directory operations
 bool FileSystemTimeoutRetryWrapper::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
 	return inner_filesystem->DirectoryExists(directory, opener);
 }
@@ -106,47 +70,30 @@ void FileSystemTimeoutRetryWrapper::RemoveDirectory(const string &directory, opt
 	inner_filesystem->RemoveDirectory(directory, opener);
 }
 
-// List operations
 bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
                                               const std::function<void(const string &, bool)> &callback,
                                               FileOpener *opener) {
-	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
-		return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);
-	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
-	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
-	return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);
+	auto wrapped_callback = [this, &callback](OpenFileInfo &info) {
+		const bool is_dir = IsDirectory(info);
+		callback(info.path, is_dir);
+	};
+	return ListFilesExtended(directory, wrapped_callback, opener);
 }
 
-bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
-                                              const std::function<void(OpenFileInfo &info)> &callback,
-                                              optional_ptr<FileOpener> opener) {
-	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
-		return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);
-	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
-	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
-	return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);
-}
 
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                                        optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::OPEN);
-		return inner_filesystem->OpenFileExtended(path, flags, &timeout_retry_opener);
+		return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
 	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
 	DatabaseFileOpener database_opener(db);
 	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::OPEN);
-	return inner_filesystem->OpenFileExtended(path, flags, &timeout_retry_opener);
+	return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::SupportsOpenFileExtended() const {
-	return inner_filesystem->SupportsOpenFileExtended();
+	return true;
 }
 
 bool FileSystemTimeoutRetryWrapper::ListFilesExtended(const string &directory,
@@ -154,21 +101,16 @@ bool FileSystemTimeoutRetryWrapper::ListFilesExtended(const string &directory,
                                                        optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
-		return inner_filesystem->ListFilesExtended(directory, callback, &timeout_retry_opener);
+		return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);
 	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
 	DatabaseFileOpener database_opener(db);
 	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
-	return inner_filesystem->ListFilesExtended(directory, callback, &timeout_retry_opener);
+	return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::SupportsListFilesExtended() const {
-	return inner_filesystem->SupportsListFilesExtended();
+	return true;
 }
-
-//===--------------------------------------------------------------------===//
-// Non-IO operations
-//===--------------------------------------------------------------------===//
 
 void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
                                              optional_ptr<FileOpener> opener) {
@@ -188,7 +130,6 @@ void FileSystemTimeoutRetryWrapper::RemoveFile(const string &filename, optional_
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
 		inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
 	} else {
-		// When no opener is provided, create a DatabaseFileOpener to read settings from database config
 		DatabaseFileOpener database_opener(db);
 		TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
 		inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
@@ -200,7 +141,6 @@ bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, option
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
 		return inner_filesystem->TryRemoveFile(filename, &timeout_retry_opener);
 	}
-	// When no opener is provided, create a DatabaseFileOpener to read settings from database config
 	DatabaseFileOpener database_opener(db);
 	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
 	return inner_filesystem->TryRemoveFile(filename, &timeout_retry_opener);
@@ -258,7 +198,6 @@ bool FileSystemTimeoutRetryWrapper::CanHandleFile(const string &fpath) {
 	return inner_filesystem->CanHandleFile(fpath);
 }
 
-// Seek operations
 void FileSystemTimeoutRetryWrapper::Seek(FileHandle &handle, idx_t location) {
 	inner_filesystem->Seek(handle, location);
 }
@@ -271,7 +210,6 @@ idx_t FileSystemTimeoutRetryWrapper::SeekPosition(FileHandle &handle) {
 	return inner_filesystem->SeekPosition(handle);
 }
 
-// File system properties
 bool FileSystemTimeoutRetryWrapper::IsManuallySet() {
 	return inner_filesystem->IsManuallySet();
 }
@@ -284,13 +222,11 @@ bool FileSystemTimeoutRetryWrapper::OnDiskFile(FileHandle &handle) {
 	return inner_filesystem->OnDiskFile(handle);
 }
 
-// Compressed file operations
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenCompressedFile(QueryContext context,
                                                                          unique_ptr<FileHandle> handle, bool write) {
 	return inner_filesystem->OpenCompressedFile(context, std::move(handle), write);
 }
 
-// Disabled filesystem operations
 void FileSystemTimeoutRetryWrapper::SetDisabledFileSystems(const vector<string> &names) {
 	inner_filesystem->SetDisabledFileSystems(names);
 }

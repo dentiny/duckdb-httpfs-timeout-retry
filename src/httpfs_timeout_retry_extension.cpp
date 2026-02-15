@@ -5,8 +5,9 @@
 #include "duckdb/common/http_util.hpp"
 #include "duckdb/common/string.hpp"
 #include "duckdb/common/vector.hpp"
-#include "duckdb/main/extension_manager.hpp"
+#include "duckdb/main/extension_helper.hpp"
 #include "duckdb/main/extension_install_info.hpp"
+#include "duckdb/main/extension_manager.hpp"
 #include "file_system_timeout_retry_wrapper.hpp"
 #include "httpfs_timeout_retry_extension.hpp"
 #include "httpfs_extension.hpp"
@@ -74,7 +75,7 @@ void LoadInternal(ExtensionLoader &loader) {
 	auto &instance = loader.GetDatabaseInstance();
 	auto &config = DBConfig::GetConfig(instance);
 
-	// Ensure httpfs extension is loaded to achive 100% compatibility with httpfs extension
+	// Ensure httpfs extension is loaded to achieve 100% compatibility with httpfs extension
 	EnsureHttpfsExtensionLoaded(loader, instance);
 
 	// Wrap all httpfs filesystems with timeout/retry wrapper

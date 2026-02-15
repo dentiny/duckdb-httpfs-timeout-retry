@@ -22,8 +22,6 @@ public:
 	// Open operations
 	unique_ptr<FileHandle> OpenFile(const string &path, FileOpenFlags flags,
 	                                optional_ptr<FileOpener> opener = nullptr) override;
-	unique_ptr<FileHandle> OpenFile(const OpenFileInfo &path, FileOpenFlags flags,
-	                                optional_ptr<FileOpener> opener = nullptr) override;
 
 	// Read/Write operations
 	void Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) override;
@@ -46,8 +44,6 @@ public:
 	// List operations
 	bool ListFiles(const string &directory, const std::function<void(const string &, bool)> &callback,
 	               FileOpener *opener = nullptr) override;
-	bool ListFiles(const string &directory, const std::function<void(OpenFileInfo &info)> &callback,
-	               optional_ptr<FileOpener> opener = nullptr) override;
 
 protected:
 	// Extended IO operations
