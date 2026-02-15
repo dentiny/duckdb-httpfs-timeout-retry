@@ -14,8 +14,51 @@ FileSystemTimeoutRetryWrapper::FileSystemTimeoutRetryWrapper(unique_ptr<FileSyst
     : inner_filesystem(std::move(inner_filesystem)), db(db) {
 }
 
-string FileSystemTimeoutRetryWrapper::GetName() const {
-	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
+//===--------------------------------------------------------------------===//
+// Wrap with timeout and retry opener logic
+//===--------------------------------------------------------------------===//
+
+bool FileSystemTimeoutRetryWrapper::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
+		return inner_filesystem->DirectoryExists(directory, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::STAT);
+	return inner_filesystem->DirectoryExists(directory, &timeout_retry_opener);
+}
+
+void FileSystemTimeoutRetryWrapper::CreateDirectory(const string &directory, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::CREATE_DIR);
+		inner_filesystem->CreateDirectory(directory, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::CREATE_DIR);
+	inner_filesystem->CreateDirectory(directory, &timeout_retry_opener);
+}
+
+void FileSystemTimeoutRetryWrapper::CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::CREATE_DIR);
+		inner_filesystem->CreateDirectoriesRecursive(path, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::CREATE_DIR);
+	inner_filesystem->CreateDirectoriesRecursive(path, &timeout_retry_opener);
+}
+
+void FileSystemTimeoutRetryWrapper::RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
+		inner_filesystem->RemoveDirectory(directory, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
+	inner_filesystem->RemoveDirectory(directory, &timeout_retry_opener);
 }
 
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
@@ -23,73 +66,10 @@ unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &pat
 	return OpenFileExtended(OpenFileInfo(path), flags, opener);
 }
 
-void FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
-	inner_filesystem->Read(handle, buffer, nr_bytes, location);
-}
-
-void FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
-	inner_filesystem->Write(handle, buffer, nr_bytes, location);
-}
-
-int64_t FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes) {
-	return inner_filesystem->Read(handle, buffer, nr_bytes);
-}
-
-int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes) {
-	return inner_filesystem->Write(handle, buffer, nr_bytes);
-}
-int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
-	return inner_filesystem->GetFileSize(handle);
-}
-
-timestamp_t FileSystemTimeoutRetryWrapper::GetLastModifiedTime(FileHandle &handle) {
-	return inner_filesystem->GetLastModifiedTime(handle);
-}
-
-string FileSystemTimeoutRetryWrapper::GetVersionTag(FileHandle &handle) {
-	return inner_filesystem->GetVersionTag(handle);
-}
-
-FileType FileSystemTimeoutRetryWrapper::GetFileType(FileHandle &handle) {
-	return inner_filesystem->GetFileType(handle);
-}
-
-bool FileSystemTimeoutRetryWrapper::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
-	return inner_filesystem->DirectoryExists(directory, opener);
-}
-
-void FileSystemTimeoutRetryWrapper::CreateDirectory(const string &directory, optional_ptr<FileOpener> opener) {
-	inner_filesystem->CreateDirectory(directory, opener);
-}
-
-void FileSystemTimeoutRetryWrapper::CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener) {
-	inner_filesystem->CreateDirectoriesRecursive(path, opener);
-}
-
-void FileSystemTimeoutRetryWrapper::RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener) {
-	inner_filesystem->RemoveDirectory(directory, opener);
-}
-
-bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
-                                              const std::function<void(const string &, bool)> &callback,
-                                              FileOpener *opener) {
-	auto wrapped_callback = [this, &callback](OpenFileInfo &info) {
-		const bool is_dir = IsDirectory(info);
-		callback(info.path, is_dir);
-	};
-	return ListFilesExtended(directory, wrapped_callback, opener);
-}
-
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                                        optional_ptr<FileOpener> opener) {
 	HttpfsOperationType operation_type = HttpfsOperationType::OPEN;
 	if (opener) {
-		// Check if opener is already a TimeoutRetryFileOpener and preserve its operation type
-		auto *existing_timeout_retry_opener = dynamic_cast<TimeoutRetryFileOpener *>(opener.get());
-		if (existing_timeout_retry_opener) {
-			// Use the existing opener directly since it's already configured
-			return inner_filesystem->OpenFile(path, flags, opener);
-		}
 		TimeoutRetryFileOpener wrapped_opener(*opener, operation_type);
 		return inner_filesystem->OpenFile(path, flags, &wrapped_opener);
 	}
@@ -100,6 +80,16 @@ unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const Ope
 
 bool FileSystemTimeoutRetryWrapper::SupportsOpenFileExtended() const {
 	return true;
+}
+
+bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
+                                              const std::function<void(const string &, bool)> &callback,
+                                              FileOpener *opener) {
+	auto wrapped_callback = [this, &callback](OpenFileInfo &info) {
+		const bool is_dir = IsDirectory(info);
+		callback(info.path, is_dir);
+	};
+	return ListFilesExtended(directory, wrapped_callback, opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::ListFilesExtended(const string &directory,
@@ -118,28 +108,35 @@ bool FileSystemTimeoutRetryWrapper::SupportsListFilesExtended() const {
 	return true;
 }
 
-void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
-                                             optional_ptr<FileOpener> opener) {
-	inner_filesystem->MoveFile(source, target, opener);
-}
-
 bool FileSystemTimeoutRetryWrapper::FileExists(const string &filename, optional_ptr<FileOpener> opener) {
-	return inner_filesystem->FileExists(filename, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
+		return inner_filesystem->FileExists(filename, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::STAT);
+	return inner_filesystem->FileExists(filename, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::IsPipe(const string &filename, optional_ptr<FileOpener> opener) {
-	return inner_filesystem->IsPipe(filename, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
+		return inner_filesystem->IsPipe(filename, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::STAT);
+	return inner_filesystem->IsPipe(filename, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::RemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
 		inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
-	} else {
-		DatabaseFileOpener database_opener(db);
-		TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
-		inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
+		return;
 	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
+	inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
@@ -150,6 +147,61 @@ bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, option
 	DatabaseFileOpener database_opener(db);
 	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
 	return inner_filesystem->TryRemoveFile(filename, &timeout_retry_opener);
+}
+
+vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
+		return inner_filesystem->Glob(path, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
+	return inner_filesystem->Glob(path, &timeout_retry_opener);
+}
+
+//===--------------------------------------------------------------------===//
+// Delegate to internal filesystem
+//===--------------------------------------------------------------------===//
+
+string FileSystemTimeoutRetryWrapper::GetName() const {
+	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
+}
+
+void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
+                                             optional_ptr<FileOpener> opener) {
+	inner_filesystem->MoveFile(source, target, opener);
+}
+
+void FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
+	inner_filesystem->Read(handle, buffer, nr_bytes, location);
+}
+
+void FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
+	inner_filesystem->Write(handle, buffer, nr_bytes, location);
+}
+
+int64_t FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes) {
+	return inner_filesystem->Read(handle, buffer, nr_bytes);
+}
+
+int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes) {
+	return inner_filesystem->Write(handle, buffer, nr_bytes);
+}
+
+int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
+	return inner_filesystem->GetFileSize(handle);
+}
+
+timestamp_t FileSystemTimeoutRetryWrapper::GetLastModifiedTime(FileHandle &handle) {
+	return inner_filesystem->GetLastModifiedTime(handle);
+}
+
+string FileSystemTimeoutRetryWrapper::GetVersionTag(FileHandle &handle) {
+	return inner_filesystem->GetVersionTag(handle);
+}
+
+FileType FileSystemTimeoutRetryWrapper::GetFileType(FileHandle &handle) {
+	return inner_filesystem->GetFileType(handle);
 }
 
 void FileSystemTimeoutRetryWrapper::FileSync(FileHandle &handle) {
@@ -174,10 +226,6 @@ string FileSystemTimeoutRetryWrapper::ExpandPath(const string &path) {
 
 string FileSystemTimeoutRetryWrapper::PathSeparator(const string &path) {
 	return inner_filesystem->PathSeparator(path);
-}
-
-vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
-	return inner_filesystem->Glob(path, opener);
 }
 
 void FileSystemTimeoutRetryWrapper::RegisterSubSystem(unique_ptr<FileSystem> sub_fs) {

@@ -5,7 +5,7 @@
 
 namespace duckdb {
 
-enum class HttpfsOperationType { OPEN, READ, WRITE, LIST, DELETE, CONNECT };
+enum class HttpfsOperationType { OPEN, LIST, DELETE, STAT, CREATE_DIR };
 
 // FileOpener wrapper that provides per-operation timeout and retry settings
 class TimeoutRetryFileOpener : public FileOpener {

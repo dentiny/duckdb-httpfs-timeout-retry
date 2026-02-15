@@ -1,8 +1,11 @@
 #include "timeout_retry_file_opener.hpp"
+
+#include "duckdb/common/exception.hpp"
 #include "duckdb/common/file_opener.hpp"
 #include "duckdb/common/string.hpp"
 #include "duckdb/main/client_context.hpp"
 #include "duckdb/main/setting_info.hpp"
+#include "httpfs_timeout_retry_settings.hpp"
 
 namespace duckdb {
 
@@ -23,6 +26,7 @@ SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &k
 			uint64_t timeout_ms = result.GetValue<uint64_t>();
 			uint64_t timeout_seconds = (timeout_ms > 0 && timeout_ms < 1000) ? 1 : (timeout_ms / 1000);
 			result = Value::UBIGINT(timeout_seconds);
+			// TODO(hjiang): double check the scope.
 			return SettingLookupResult(SettingScope::GLOBAL);
 		}
 		// Fall back to original http_timeout if per-operation setting not found
@@ -33,6 +37,7 @@ SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &k
 		// Try to get the per-operation retry setting
 		string op_retry_key = GetRetrySettingName();
 		if (FileOpener::TryGetCurrentSetting(&inner_opener, op_retry_key, result, &info)) {
+			// TODO(hjiang): double check the scope.
 			return SettingLookupResult(SettingScope::GLOBAL);
 		}
 		// Fall back to original http_retries if per-operation setting not found
@@ -94,38 +99,36 @@ Logger &TimeoutRetryFileOpener::GetLogger() const {
 string TimeoutRetryFileOpener::GetTimeoutSettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return "httpfs_timeout_open_ms";
-	case HttpfsOperationType::READ:
-		return "httpfs_timeout_read_ms";
-	case HttpfsOperationType::WRITE:
-		return "httpfs_timeout_write_ms";
+		return HTTPFS_TIMEOUT_OPEN_MS;
 	case HttpfsOperationType::LIST:
-		return "httpfs_timeout_list_ms";
+		return HTTPFS_TIMEOUT_LIST_MS;
 	case HttpfsOperationType::DELETE:
-		return "httpfs_timeout_delete_ms";
-	case HttpfsOperationType::CONNECT:
-		return "httpfs_timeout_connect_ms";
+		return HTTPFS_TIMEOUT_DELETE_MS;
+	case HttpfsOperationType::STAT:
+		return HTTPFS_TIMEOUT_STAT_MS;
+	case HttpfsOperationType::CREATE_DIR:
+		return HTTPFS_TIMEOUT_CREATE_DIR_MS;
 	default:
-		return "httpfs_timeout_open_ms";
+		throw InternalException("Unknown HttpfsOperationType in GetTimeoutSettingName: %d",
+		                        static_cast<int>(operation_type));
 	}
 }
 
 string TimeoutRetryFileOpener::GetRetrySettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return "httpfs_retries_open";
-	case HttpfsOperationType::READ:
-		return "httpfs_retries_read";
-	case HttpfsOperationType::WRITE:
-		return "httpfs_retries_write";
+		return HTTPFS_RETRIES_OPEN;
 	case HttpfsOperationType::LIST:
-		return "httpfs_retries_list";
+		return HTTPFS_RETRIES_LIST;
 	case HttpfsOperationType::DELETE:
-		return "httpfs_retries_delete";
-	case HttpfsOperationType::CONNECT:
-		return "httpfs_retries_connect";
+		return HTTPFS_RETRIES_DELETE;
+	case HttpfsOperationType::STAT:
+		return HTTPFS_RETRIES_STAT;
+	case HttpfsOperationType::CREATE_DIR:
+		return HTTPFS_RETRIES_CREATE_DIR;
 	default:
-		return "httpfs_retries_open";
+		throw InternalException("Unknown HttpfsOperationType in GetRetrySettingName: %d",
+		                        static_cast<int>(operation_type));
 	}
 }
 

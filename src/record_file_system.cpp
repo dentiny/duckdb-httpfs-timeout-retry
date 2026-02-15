@@ -6,6 +6,7 @@
 #include "duckdb/common/string.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/main/setting_info.hpp"
+#include "httpfs_timeout_retry_settings.hpp"
 #include "timeout_retry_file_opener.hpp"
 
 namespace duckdb {
@@ -35,33 +36,28 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 	// Determine the per-operation setting names based on operation type
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		timeout_setting_name = "httpfs_timeout_open_ms";
-		retry_setting_name = "httpfs_retries_open";
-		break;
-	case HttpfsOperationType::READ:
-		timeout_setting_name = "httpfs_timeout_read_ms";
-		retry_setting_name = "httpfs_retries_read";
-		break;
-	case HttpfsOperationType::WRITE:
-		timeout_setting_name = "httpfs_timeout_write_ms";
-		retry_setting_name = "httpfs_retries_write";
+		timeout_setting_name = HTTPFS_TIMEOUT_OPEN_MS;
+		retry_setting_name = HTTPFS_RETRIES_OPEN;
 		break;
 	case HttpfsOperationType::LIST:
-		timeout_setting_name = "httpfs_timeout_list_ms";
-		retry_setting_name = "httpfs_retries_list";
+		timeout_setting_name = HTTPFS_TIMEOUT_LIST_MS;
+		retry_setting_name = HTTPFS_RETRIES_LIST;
 		break;
 	case HttpfsOperationType::DELETE:
-		timeout_setting_name = "httpfs_timeout_delete_ms";
-		retry_setting_name = "httpfs_retries_delete";
+		timeout_setting_name = HTTPFS_TIMEOUT_DELETE_MS;
+		retry_setting_name = HTTPFS_RETRIES_DELETE;
 		break;
-	case HttpfsOperationType::CONNECT:
-		timeout_setting_name = "httpfs_timeout_connect_ms";
-		retry_setting_name = "httpfs_retries_connect";
+	case HttpfsOperationType::STAT:
+		timeout_setting_name = HTTPFS_TIMEOUT_STAT_MS;
+		retry_setting_name = HTTPFS_RETRIES_STAT;
+		break;
+	case HttpfsOperationType::CREATE_DIR:
+		timeout_setting_name = HTTPFS_TIMEOUT_CREATE_DIR_MS;
+		retry_setting_name = HTTPFS_RETRIES_CREATE_DIR;
 		break;
 	default:
-		timeout_setting_name = "httpfs_timeout_open_ms";
-		retry_setting_name = "httpfs_retries_open";
-		break;
+		throw InternalException("Unknown HttpfsOperationType in RecordFileSystem::RecordParams: %d",
+		                        static_cast<int>(operation_type));
 	}
 
 	// Get per-operation timeout (in milliseconds) and convert to seconds
@@ -91,25 +87,33 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 
 unique_ptr<FileHandle> RecordFileSystem::OpenFile(const string &path, FileOpenFlags flags,
                                                   optional_ptr<FileOpener> opener) {
-	RecordParams(path, opener);
+	if (opener) {
+		RecordParams(path, opener);
+	}
 	return LocalFileSystem::OpenFile(path, flags, opener);
 }
 
 unique_ptr<FileHandle> RecordFileSystem::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                           optional_ptr<FileOpener> opener) {
-	RecordParams(path.path, opener);
+	if (opener) {
+		RecordParams(path.path, opener);
+	}
 	return LocalFileSystem::OpenFileExtended(path, flags, opener);
 }
 
 bool RecordFileSystem::ListFilesExtended(const string &directory,
                                          const std::function<void(OpenFileInfo &info)> &callback,
                                          optional_ptr<FileOpener> opener) {
-	RecordParams(directory, opener);
+	if (opener) {
+		RecordParams(directory, opener);
+	}
 	return LocalFileSystem::ListFilesExtended(directory, callback, opener);
 }
 
 void RecordFileSystem::RemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
-	RecordParams(filename, opener);
+	if (opener) {
+		RecordParams(filename, opener);
+	}
 	LocalFileSystem::RemoveFile(filename, opener);
 }
 
@@ -120,6 +124,55 @@ RecordedParams RecordFileSystem::GetRecordedParams(const string &path) const {
 		return it->second;
 	}
 	return RecordedParams {};
+}
+
+bool RecordFileSystem::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		RecordParams(directory, opener);
+	}
+	return LocalFileSystem::DirectoryExists(directory, opener);
+}
+
+void RecordFileSystem::CreateDirectory(const string &directory, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		RecordParams(directory, opener);
+	}
+	LocalFileSystem::CreateDirectory(directory, opener);
+}
+
+void RecordFileSystem::CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		RecordParams(path, opener);
+	}
+	LocalFileSystem::CreateDirectoriesRecursive(path, opener);
+}
+
+void RecordFileSystem::RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		RecordParams(directory, opener);
+	}
+	LocalFileSystem::RemoveDirectory(directory, opener);
+}
+
+bool RecordFileSystem::FileExists(const string &filename, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		RecordParams(filename, opener);
+	}
+	return LocalFileSystem::FileExists(filename, opener);
+}
+
+bool RecordFileSystem::IsPipe(const string &filename, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		RecordParams(filename, opener);
+	}
+	return LocalFileSystem::IsPipe(filename, opener);
+}
+
+vector<OpenFileInfo> RecordFileSystem::Glob(const string &path, FileOpener *opener) {
+	if (opener) {
+		RecordParams(path, optional_ptr<FileOpener>(opener));
+	}
+	return LocalFileSystem::Glob(path, opener);
 }
 
 } // namespace duckdb

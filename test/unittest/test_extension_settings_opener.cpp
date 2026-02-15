@@ -20,27 +20,23 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 
 	db_config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_read_ms", "Timeout for reading files (in milliseconds)",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_write_ms", "Timeout for writing files (in milliseconds)",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_connect_ms", "Timeout for establishing connections (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_stat_ms", "Timeout for stat/metadata operations (in milliseconds)",
+	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
+	db_config.AddExtensionOption("httpfs_timeout_create_dir_ms", "Timeout for creating directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	db_config.AddExtensionOption("httpfs_retries_read", "Maximum number of retries for reading files",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	db_config.AddExtensionOption("httpfs_retries_write", "Maximum number of retries for writing files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_list", "Maximum number of retries for listing directories",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_delete", "Maximum number of retries for deleting files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	db_config.AddExtensionOption("httpfs_retries_connect", "Maximum number of retries for establishing connections",
+	db_config.AddExtensionOption("httpfs_retries_stat", "Maximum number of retries for stat/metadata operations",
+	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
+	db_config.AddExtensionOption("httpfs_retries_create_dir", "Maximum number of retries for creating directories",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 
 	SECTION("Test OPEN operation via direct opener") {
@@ -59,42 +55,6 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 		auto retries_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_retries", retries_value);
 		REQUIRE(static_cast<bool>(retries_result));
 		REQUIRE(retries_value.GetValue<uint64_t>() == 2);
-	}
-
-	SECTION("Test READ operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_read_ms", Value::UBIGINT(20000));
-		db_config.SetOptionByName("httpfs_retries_read", Value::UBIGINT(4));
-
-		DatabaseFileOpener opener(db_instance);
-		TimeoutRetryFileOpener timeout_retry_opener(opener, HttpfsOperationType::READ);
-
-		Value timeout_value;
-		auto timeout_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_timeout", timeout_value);
-		REQUIRE(static_cast<bool>(timeout_result));
-		REQUIRE(timeout_value.GetValue<uint64_t>() == 20);
-
-		Value retries_value;
-		auto retries_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_retries", retries_value);
-		REQUIRE(static_cast<bool>(retries_result));
-		REQUIRE(retries_value.GetValue<uint64_t>() == 4);
-	}
-
-	SECTION("Test WRITE operation via direct opener") {
-		db_config.SetOptionByName("httpfs_timeout_write_ms", Value::UBIGINT(35000));
-		db_config.SetOptionByName("httpfs_retries_write", Value::UBIGINT(8));
-
-		DatabaseFileOpener opener(db_instance);
-		TimeoutRetryFileOpener timeout_retry_opener(opener, HttpfsOperationType::WRITE);
-
-		Value timeout_value;
-		auto timeout_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_timeout", timeout_value);
-		REQUIRE(static_cast<bool>(timeout_result));
-		REQUIRE(timeout_value.GetValue<uint64_t>() == 35);
-
-		Value retries_value;
-		auto retries_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_retries", retries_value);
-		REQUIRE(static_cast<bool>(retries_result));
-		REQUIRE(retries_value.GetValue<uint64_t>() == 8);
 	}
 
 	SECTION("Test LIST operation via direct opener") {
@@ -131,5 +91,41 @@ TEST_CASE("Extension settings via direct opener", "[extension_settings_opener]")
 		auto retries_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_retries", retries_value);
 		REQUIRE(static_cast<bool>(retries_result));
 		REQUIRE(retries_value.GetValue<uint64_t>() == 7);
+	}
+
+	SECTION("Test STAT operation via direct opener") {
+		db_config.SetOptionByName("httpfs_timeout_stat_ms", Value::UBIGINT(30000));
+		db_config.SetOptionByName("httpfs_retries_stat", Value::UBIGINT(5));
+
+		DatabaseFileOpener opener(db_instance);
+		TimeoutRetryFileOpener timeout_retry_opener(opener, HttpfsOperationType::STAT);
+
+		Value timeout_value;
+		auto timeout_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_timeout", timeout_value);
+		REQUIRE(static_cast<bool>(timeout_result));
+		REQUIRE(timeout_value.GetValue<uint64_t>() == 30);
+
+		Value retries_value;
+		auto retries_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_retries", retries_value);
+		REQUIRE(static_cast<bool>(retries_result));
+		REQUIRE(retries_value.GetValue<uint64_t>() == 5);
+	}
+
+	SECTION("Test CREATE_DIR operation via direct opener") {
+		db_config.SetOptionByName("httpfs_timeout_create_dir_ms", Value::UBIGINT(40000));
+		db_config.SetOptionByName("httpfs_retries_create_dir", Value::UBIGINT(6));
+
+		DatabaseFileOpener opener(db_instance);
+		TimeoutRetryFileOpener timeout_retry_opener(opener, HttpfsOperationType::CREATE_DIR);
+
+		Value timeout_value;
+		auto timeout_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_timeout", timeout_value);
+		REQUIRE(static_cast<bool>(timeout_result));
+		REQUIRE(timeout_value.GetValue<uint64_t>() == 40);
+
+		Value retries_value;
+		auto retries_result = FileOpener::TryGetCurrentSetting(&timeout_retry_opener, "http_retries", retries_value);
+		REQUIRE(static_cast<bool>(retries_result));
+		REQUIRE(retries_value.GetValue<uint64_t>() == 6);
 	}
 }
