@@ -29,8 +29,8 @@ The default configuration on timeout and retry also defaults to `httpfs` ones.
 Configure timeouts (in milliseconds) for each operation type:
 
 ```sql
--- File opening operations
-SET httpfs_timeout_open_ms = 30000;      -- 30 seconds
+-- File operations (open, read, write), which applies to all file operations.
+SET httpfs_timeout_file_operation_ms = 30000;      -- 30 seconds
 
 -- List operations
 SET httpfs_timeout_list_ms = 60000;      -- 60 seconds
@@ -51,7 +51,7 @@ Configure maximum retries for each operation type:
 
 ```sql
 -- Retry counts for each operation
-SET httpfs_retries_open = 3;
+SET httpfs_retries_file_operation = 3;  -- applies to open, read, and write operations
 SET httpfs_retries_list = 3;
 SET httpfs_retries_delete = 2;
 SET httpfs_retries_stat = 2;

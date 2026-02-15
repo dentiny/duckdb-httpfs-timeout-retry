@@ -7,10 +7,10 @@ require httpfs_timeout_retry
 
 # Test that we can set and retrieve timeout settings (in milliseconds)
 statement ok
-SET httpfs_timeout_open_ms = 45000;
+SET httpfs_timeout_file_operation_ms = 45000;
 
 query I
-SELECT current_setting('httpfs_timeout_open_ms');
+SELECT current_setting('httpfs_timeout_file_operation_ms');
 ----
 45000
 
@@ -48,10 +48,10 @@ SELECT current_setting('httpfs_timeout_create_dir_ms');
 
 # Test that we can set and retrieve retry settings for each operation
 statement ok
-SET httpfs_retries_open = 5;
+SET httpfs_retries_file_operation = 5;
 
 query I
-SELECT current_setting('httpfs_retries_open');
+SELECT current_setting('httpfs_retries_file_operation');
 ----
 5
 
@@ -89,10 +89,10 @@ SELECT current_setting('httpfs_retries_create_dir');
 
 # Test default values
 statement ok
-RESET httpfs_timeout_open_ms;
+RESET httpfs_timeout_file_operation_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_open_ms');
+SELECT current_setting('httpfs_timeout_file_operation_ms');
 ----
 30000
 
@@ -129,10 +129,10 @@ SELECT current_setting('httpfs_timeout_create_dir_ms');
 30000
 
 statement ok
-RESET httpfs_retries_open;
+RESET httpfs_retries_file_operation;
 
 query I
-SELECT current_setting('httpfs_retries_open');
+SELECT current_setting('httpfs_retries_file_operation');
 ----
 3
 
