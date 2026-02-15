@@ -67,7 +67,6 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 	// Get per-operation timeout (in milliseconds) and convert to seconds
 	if (FileOpener::TryGetCurrentSetting(opener, timeout_setting_name, value)) {
 		const uint64_t timeout_ms = value.GetValue<uint64_t>();
-		// Convert from milliseconds to seconds (same conversion as TimeoutRetryFileOpener)
 		params.timeout = (timeout_ms > 0 && timeout_ms < 1000) ? 1 : (timeout_ms / 1000);
 	}
 
@@ -76,17 +75,17 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 		params.retries = value.GetValue<uint64_t>();
 	}
 
-	// Try to get http_retry_wait_ms (common for all operations)
+	// Try to get http_retry_wait_ms
 	if (FileOpener::TryGetCurrentSetting(opener, "http_retry_wait_ms", value)) {
 		params.retry_wait_ms = value.GetValue<uint64_t>();
 	}
 
-	// Try to get http_retry_backoff (common for all operations)
+	// Try to get http_retry_backoff
 	if (FileOpener::TryGetCurrentSetting(opener, "http_retry_backoff", value)) {
 		params.retry_backoff = value.GetValue<double>();
 	}
 
-	lock_guard<mutex> lock(params_lock);
+	const lock_guard<mutex> lock(params_lock);
 	recorded_params[path] = params;
 }
 
@@ -115,7 +114,7 @@ void RecordFileSystem::RemoveFile(const string &filename, optional_ptr<FileOpene
 }
 
 RecordedParams RecordFileSystem::GetRecordedParams(const string &path) const {
-	lock_guard<mutex> lock(params_lock);
+	const lock_guard<mutex> lock(params_lock);
 	auto it = recorded_params.find(path);
 	if (it != recorded_params.end()) {
 		return it->second;
