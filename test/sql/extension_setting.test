@@ -44,15 +44,23 @@ SET httpfs_timeout_delete_ms = 45000;
 query I
 SELECT current_setting('httpfs_timeout_delete_ms');
 ----
-45000
+	45000
 
 statement ok
-SET httpfs_timeout_connect_ms = 15000;
+SET httpfs_timeout_stat_ms = 50000;
 
 query I
-SELECT current_setting('httpfs_timeout_connect_ms');
+SELECT current_setting('httpfs_timeout_stat_ms');
 ----
-15000
+50000
+
+statement ok
+SET httpfs_timeout_create_dir_ms = 55000;
+
+query I
+SELECT current_setting('httpfs_timeout_create_dir_ms');
+----
+55000
 
 # Test that we can set and retrieve retry settings for each operation
 statement ok
@@ -96,44 +104,20 @@ SELECT current_setting('httpfs_retries_delete');
 2
 
 statement ok
-SET httpfs_retries_connect = 5;
+SET httpfs_retries_stat = 4;
 
 query I
-SELECT current_setting('httpfs_retries_connect');
+SELECT current_setting('httpfs_retries_stat');
+----
+4
+
+statement ok
+SET httpfs_retries_create_dir = 5;
+
+query I
+SELECT current_setting('httpfs_retries_create_dir');
 ----
 5
-
-statement ok
-SET httpfs_retry_wait_ms = 200;
-
-query I
-SELECT current_setting('httpfs_retry_wait_ms');
-----
-200
-
-statement ok
-SET httpfs_retry_backoff = 5.0;
-
-query I
-SELECT current_setting('httpfs_retry_backoff');
-----
-5.0
-
-statement ok
-SET httpfs_retry_on_timeout = true;
-
-query I
-SELECT current_setting('httpfs_retry_on_timeout');
-----
-true
-
-statement ok
-SET httpfs_retry_on_connection_error = false;
-
-query I
-SELECT current_setting('httpfs_retry_on_connection_error');
-----
-false
 
 # Test default values
 statement ok
@@ -174,13 +158,21 @@ RESET httpfs_timeout_delete_ms;
 query I
 SELECT current_setting('httpfs_timeout_delete_ms');
 ----
+	30000
+
+statement ok
+RESET httpfs_timeout_stat_ms;
+
+query I
+SELECT current_setting('httpfs_timeout_stat_ms');
+----
 30000
 
 statement ok
-RESET httpfs_timeout_connect_ms;
+RESET httpfs_timeout_create_dir_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_connect_ms');
+SELECT current_setting('httpfs_timeout_create_dir_ms');
 ----
 30000
 
@@ -206,28 +198,20 @@ RESET httpfs_retries_write;
 query I
 SELECT current_setting('httpfs_retries_write');
 ----
+	3
+
+statement ok
+RESET httpfs_retries_stat;
+
+query I
+SELECT current_setting('httpfs_retries_stat');
+----
 3
 
 statement ok
-RESET httpfs_retry_wait_ms;
+RESET httpfs_retries_create_dir;
 
 query I
-SELECT current_setting('httpfs_retry_wait_ms');
+SELECT current_setting('httpfs_retries_create_dir');
 ----
-100
-
-statement ok
-RESET httpfs_retry_backoff;
-
-query I
-SELECT current_setting('httpfs_retry_backoff');
-----
-4.0
-
-statement ok
-RESET httpfs_retry_on_timeout;
-
-query I
-SELECT current_setting('httpfs_retry_on_timeout');
-----
-true
+3

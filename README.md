@@ -44,6 +44,12 @@ SET httpfs_timeout_list_ms = 60000;      -- 60 seconds
 
 -- Delete operations
 SET httpfs_timeout_delete_ms = 30000;    -- 30 seconds
+
+-- Stat/metadata operations
+SET httpfs_timeout_stat_ms = 10000;      -- 10 seconds
+
+-- Directory creation operations
+SET httpfs_timeout_create_dir_ms = 20000; -- 20 seconds
 ```
 
 ### Per-Operation Retry Settings
@@ -53,10 +59,12 @@ Configure maximum retries for each operation type:
 ```sql
 -- Retry counts for each operation
 SET httpfs_retries_open = 3;
-SET httpfs_retries_read = 5; -- More retries for reads (idempotent, may hit cache)
+SET httpfs_retries_read = 5;
 SET httpfs_retries_write = 3;
 SET httpfs_retries_list = 3;
 SET httpfs_retries_delete = 2;
+SET httpfs_retries_stat = 2;
+SET httpfs_retries_create_dir = 3;
 ```
 
 ## Contributing

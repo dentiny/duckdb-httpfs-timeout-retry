@@ -55,19 +55,46 @@ FileType FileSystemTimeoutRetryWrapper::GetFileType(FileHandle &handle) {
 }
 
 bool FileSystemTimeoutRetryWrapper::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
-	return inner_filesystem->DirectoryExists(directory, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
+		return inner_filesystem->DirectoryExists(directory, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::STAT);
+	return inner_filesystem->DirectoryExists(directory, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::CreateDirectory(const string &directory, optional_ptr<FileOpener> opener) {
-	inner_filesystem->CreateDirectory(directory, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::CREATE_DIR);
+		inner_filesystem->CreateDirectory(directory, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::CREATE_DIR);
+	inner_filesystem->CreateDirectory(directory, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener) {
-	inner_filesystem->CreateDirectoriesRecursive(path, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::CREATE_DIR);
+		inner_filesystem->CreateDirectoriesRecursive(path, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::CREATE_DIR);
+	inner_filesystem->CreateDirectoriesRecursive(path, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener) {
-	inner_filesystem->RemoveDirectory(directory, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
+		inner_filesystem->RemoveDirectory(directory, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
+	inner_filesystem->RemoveDirectory(directory, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
@@ -120,26 +147,45 @@ bool FileSystemTimeoutRetryWrapper::SupportsListFilesExtended() const {
 
 void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
                                              optional_ptr<FileOpener> opener) {
-	inner_filesystem->MoveFile(source, target, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::WRITE);
+		inner_filesystem->MoveFile(source, target, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::WRITE);
+	inner_filesystem->MoveFile(source, target, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::FileExists(const string &filename, optional_ptr<FileOpener> opener) {
-	return inner_filesystem->FileExists(filename, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
+		return inner_filesystem->FileExists(filename, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::STAT);
+	return inner_filesystem->FileExists(filename, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::IsPipe(const string &filename, optional_ptr<FileOpener> opener) {
-	return inner_filesystem->IsPipe(filename, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
+		return inner_filesystem->IsPipe(filename, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::STAT);
+	return inner_filesystem->IsPipe(filename, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::RemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
 		inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
-	} else {
-		DatabaseFileOpener database_opener(db);
-		TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
-		inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
+		return;
 	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
+	inner_filesystem->RemoveFile(filename, &timeout_retry_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
@@ -177,7 +223,13 @@ string FileSystemTimeoutRetryWrapper::PathSeparator(const string &path) {
 }
 
 vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
-	return inner_filesystem->Glob(path, opener);
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
+		return inner_filesystem->Glob(path, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
+	return inner_filesystem->Glob(path, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::RegisterSubSystem(unique_ptr<FileSystem> sub_fs) {

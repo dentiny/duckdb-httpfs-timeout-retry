@@ -1,6 +1,5 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include "duckdb.hpp"
 #include "duckdb/common/algorithm.hpp"
 #include "duckdb/common/http_util.hpp"
 #include "duckdb/common/opener_file_system.hpp"
@@ -11,6 +10,7 @@
 #include "duckdb/main/extension_manager.hpp"
 #include "file_system_timeout_retry_wrapper.hpp"
 #include "httpfs_timeout_retry_extension.hpp"
+#include "httpfs_timeout_retry_settings.hpp"
 #include "httpfs_extension.hpp"
 
 namespace duckdb {
@@ -83,42 +83,36 @@ void LoadInternal(ExtensionLoader &loader) {
 	WrapHttpfsFileSystems(instance);
 
 	// Timeout settings for different HTTP operations (in milliseconds)
-	config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_OPEN_MS, "Timeout for opening files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_read_ms", "Timeout for reading files (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_READ_MS, "Timeout for reading files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_write_ms", "Timeout for writing files (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_WRITE_MS, "Timeout for writing files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_LIST_MS, "Timeout for listing directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_DELETE_MS, "Timeout for deleting files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption("httpfs_timeout_connect_ms", "Timeout for establishing connections (in milliseconds)",
+	config.AddExtensionOption(HTTPFS_TIMEOUT_STAT_MS, "Timeout for stat/metadata operations (in milliseconds)",
+	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
+	config.AddExtensionOption(HTTPFS_TIMEOUT_CREATE_DIR_MS, "Timeout for creating directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 
 	// Retry settings for different HTTP operations
-	config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
+	config.AddExtensionOption(HTTPFS_RETRIES_OPEN, "Maximum number of retries for opening files",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption("httpfs_retries_read", "Maximum number of retries for reading files",
+	config.AddExtensionOption(HTTPFS_RETRIES_READ, "Maximum number of retries for reading files",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption("httpfs_retries_write", "Maximum number of retries for writing files",
+	config.AddExtensionOption(HTTPFS_RETRIES_WRITE, "Maximum number of retries for writing files",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption("httpfs_retries_list", "Maximum number of retries for listing directories",
+	config.AddExtensionOption(HTTPFS_RETRIES_LIST, "Maximum number of retries for listing directories",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption("httpfs_retries_delete", "Maximum number of retries for deleting files",
+	config.AddExtensionOption(HTTPFS_RETRIES_DELETE, "Maximum number of retries for deleting files",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption("httpfs_retries_connect", "Maximum number of retries for establishing connections",
+	config.AddExtensionOption(HTTPFS_RETRIES_STAT, "Maximum number of retries for stat/metadata operations",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-
-	// Global retry behavior settings
-	config.AddExtensionOption("httpfs_retry_wait_ms", "Initial wait time between retries (in milliseconds)",
-	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRY_WAIT_MS));
-	config.AddExtensionOption("httpfs_retry_backoff", "Backoff factor for exponentially increasing retry wait time",
-	                          LogicalType {LogicalTypeId::FLOAT}, Value::FLOAT(DEFAULT_RETRY_BACKOFF));
-	config.AddExtensionOption("httpfs_retry_on_timeout", "Whether to retry on timeout errors",
-	                          LogicalType {LogicalTypeId::BOOLEAN}, Value::BOOLEAN(true));
-	config.AddExtensionOption("httpfs_retry_on_connection_error", "Whether to retry on connection errors",
-	                          LogicalType {LogicalTypeId::BOOLEAN}, Value::BOOLEAN(true));
+	config.AddExtensionOption(HTTPFS_RETRIES_CREATE_DIR, "Maximum number of retries for creating directories",
+	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 }
 
 } // namespace

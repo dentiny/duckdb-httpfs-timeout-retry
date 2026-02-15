@@ -35,6 +35,16 @@ public:
 	// Override RemoveFile to record parameters
 	void RemoveFile(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
 
+	// Override additional operations to record parameters
+	bool DirectoryExists(const string &directory, optional_ptr<FileOpener> opener = nullptr) override;
+	void CreateDirectory(const string &directory, optional_ptr<FileOpener> opener = nullptr) override;
+	void CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener = nullptr) override;
+	void RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener = nullptr) override;
+	void MoveFile(const string &source, const string &target, optional_ptr<FileOpener> opener = nullptr) override;
+	bool FileExists(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
+	bool IsPipe(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
+	vector<OpenFileInfo> Glob(const string &path, FileOpener *opener = nullptr) override;
+
 	// Get recorded parameters for a path
 	RecordedParams GetRecordedParams(const string &path) const;
 

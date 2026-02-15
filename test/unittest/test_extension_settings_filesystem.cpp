@@ -34,6 +34,10 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
+	db_config.AddExtensionOption("httpfs_timeout_stat_ms", "Timeout for stat/metadata operations (in milliseconds)",
+	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
+	db_config.AddExtensionOption("httpfs_timeout_create_dir_ms", "Timeout for creating directories (in milliseconds)",
+	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_read", "Maximum number of retries for reading files",
@@ -43,6 +47,10 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	db_config.AddExtensionOption("httpfs_retries_list", "Maximum number of retries for listing directories",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_delete", "Maximum number of retries for deleting files",
+	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
+	db_config.AddExtensionOption("httpfs_retries_stat", "Maximum number of retries for stat/metadata operations",
+	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
+	db_config.AddExtensionOption("httpfs_retries_create_dir", "Maximum number of retries for creating directories",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 
 	auto record_fs = make_uniq<RecordFileSystem>();
@@ -138,5 +146,134 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 		auto delete_params = record_fs_ptr->GetRecordedParams(test_file2);
 		REQUIRE(delete_params.timeout == 25);
 		REQUIRE(delete_params.retries == 7);
+	}
+
+	SECTION("Test DirectoryExists operation (STAT)") {
+		db_config.SetOptionByName("httpfs_timeout_stat_ms", Value::UBIGINT(12000));
+		db_config.SetOptionByName("httpfs_retries_stat", Value::UBIGINT(3));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->DirectoryExists(test_dir.GetPath(), nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 12);
+		REQUIRE(params.retries == 3);
+	}
+
+	SECTION("Test CreateDirectory operation (CREATE_DIR)") {
+		string new_dir = "/tmp/__test_new_dir__";
+		db_config.SetOptionByName("httpfs_timeout_create_dir_ms", Value::UBIGINT(18000));
+		db_config.SetOptionByName("httpfs_retries_create_dir", Value::UBIGINT(4));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->CreateDirectory(new_dir, nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 18);
+		REQUIRE(params.retries == 4);
+
+		// Cleanup
+		wrapped_fs->RemoveDirectory(new_dir, nullptr);
+	}
+
+	SECTION("Test CreateDirectoriesRecursive operation (CREATE_DIR)") {
+		string new_dir = "/tmp/__test_nested_dir__/level1/level2";
+		db_config.SetOptionByName("httpfs_timeout_create_dir_ms", Value::UBIGINT(22000));
+		db_config.SetOptionByName("httpfs_retries_create_dir", Value::UBIGINT(5));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->CreateDirectoriesRecursive(new_dir, nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 22);
+		REQUIRE(params.retries == 5);
+
+		// Cleanup
+		wrapped_fs->RemoveDirectory("/tmp/__test_nested_dir__", nullptr);
+	}
+
+	SECTION("Test RemoveDirectory operation (DELETE)") {
+		string new_dir = "/tmp/__test_remove_dir__";
+		wrapped_fs->CreateDirectory(new_dir, nullptr);
+		db_config.SetOptionByName("httpfs_timeout_delete_ms", Value::UBIGINT(28000));
+		db_config.SetOptionByName("httpfs_retries_delete", Value::UBIGINT(6));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->RemoveDirectory(new_dir, nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 28);
+		REQUIRE(params.retries == 6);
+	}
+
+	SECTION("Test MoveFile operation (WRITE)") {
+		string source_file = "__test_move_source__.txt";
+		string target_file = "__test_move_target__.txt";
+		{
+			auto fs = FileSystem::CreateLocal();
+			FileOpenFlags flags(FileFlags::FILE_FLAGS_WRITE | FileFlags::FILE_FLAGS_FILE_CREATE);
+			auto handle = fs->OpenFile(source_file, flags);
+			const char *data = "move test data";
+			handle->Write(const_cast<char *>(data), strlen(data));
+			handle->Sync();
+		}
+
+		db_config.SetOptionByName("httpfs_timeout_write_ms", Value::UBIGINT(35000));
+		db_config.SetOptionByName("httpfs_retries_write", Value::UBIGINT(8));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->MoveFile(source_file, target_file, nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 35);
+		REQUIRE(params.retries == 8);
+
+		// Cleanup
+		wrapped_fs->RemoveFile(target_file, nullptr);
+	}
+
+	SECTION("Test FileExists operation (STAT)") {
+		db_config.SetOptionByName("httpfs_timeout_stat_ms", Value::UBIGINT(14000));
+		db_config.SetOptionByName("httpfs_retries_stat", Value::UBIGINT(2));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->FileExists(test_file, nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 14);
+		REQUIRE(params.retries == 2);
+	}
+
+	SECTION("Test IsPipe operation (STAT)") {
+		db_config.SetOptionByName("httpfs_timeout_stat_ms", Value::UBIGINT(16000));
+		db_config.SetOptionByName("httpfs_retries_stat", Value::UBIGINT(3));
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->IsPipe(test_file, nullptr);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 16);
+		REQUIRE(params.retries == 3);
+	}
+
+	SECTION("Test Glob operation (LIST)") {
+		db_config.SetOptionByName("httpfs_timeout_list_ms", Value::UBIGINT(20000));
+		db_config.SetOptionByName("httpfs_retries_list", Value::UBIGINT(4));
+		DatabaseFileOpener database_opener(db_instance);
+		record_fs_ptr->ClearRecordedParams();
+		wrapped_fs->Glob(test_dir.GetPath() + "/*", &database_opener);
+
+		auto all_params = record_fs_ptr->GetAllRecordedParams();
+		REQUIRE(!all_params.empty());
+		auto params = all_params.begin()->second;
+		REQUIRE(params.timeout == 20);
+		REQUIRE(params.retries == 4);
 	}
 }
