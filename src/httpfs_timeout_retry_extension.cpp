@@ -1,6 +1,6 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include "quack_extension.hpp"
+#include "httpfs_timeout_retry_extension.hpp"
 #include "duckdb.hpp"
 #include "duckdb/common/exception.hpp"
 #include "duckdb/function/scalar_function.hpp"
@@ -37,16 +37,16 @@ static void LoadInternal(ExtensionLoader &loader) {
 	loader.RegisterFunction(quack_openssl_version_scalar_function);
 }
 
-void QuackExtension::Load(ExtensionLoader &loader) {
+void HttpfsTimeoutRetryExtension::Load(ExtensionLoader &loader) {
 	LoadInternal(loader);
 }
-std::string QuackExtension::Name() {
-	return "quack";
+std::string HttpfsTimeoutRetryExtension::Name() {
+	return "httpfs_timeout_retry";
 }
 
-std::string QuackExtension::Version() const {
-#ifdef EXT_VERSION_QUACK
-	return EXT_VERSION_QUACK;
+std::string HttpfsTimeoutRetryExtension::Version() const {
+#ifdef EXT_VERSION_HTTPFS_TIMEOUT_RETRY
+	return EXT_VERSION_HTTPFS_TIMEOUT_RETRY;
 #else
 	return "";
 #endif
@@ -56,7 +56,8 @@ std::string QuackExtension::Version() const {
 
 extern "C" {
 
-DUCKDB_CPP_EXTENSION_ENTRY(quack, loader) {
+DUCKDB_CPP_EXTENSION_ENTRY(httpfs_timeout_retry, loader) {
 	duckdb::LoadInternal(loader);
 }
+
 }

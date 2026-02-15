@@ -1,5 +1,5 @@
-# name: test/sql/quack.test
-# description: test quack extension
+# name: test/sql/httpfs_timeout_retry.test
+# description: test httpfs_timeout_retry extension
 # group: [sql]
 
 # Before we load the extension, this will fail
@@ -9,7 +9,7 @@ SELECT quack('Sam');
 Catalog Error: Scalar Function with name quack does not exist!
 
 # Require statement will ensure this test is run with this extension loaded
-require quack
+require httpfs_timeout_retry
 
 # Confirm the extension works
 query I
