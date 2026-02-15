@@ -2,11 +2,7 @@
 # description: test httpfs_timeout_retry extension with CSV operations
 # group: [sql]
 
-# Require statement will ensure this test is run with this extension loaded
 require httpfs_timeout_retry
-
-# Test reading CSV from HTTP URL with default settings
-require httpfs
 
 query IIIIII
 SELECT * FROM read_csv_auto('https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/ubn1.csv') LIMIT 3;
