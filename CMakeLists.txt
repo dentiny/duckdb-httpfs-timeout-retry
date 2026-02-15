@@ -24,11 +24,11 @@ include_directories(duckdb-httpfs/src/include)
 include_directories(duckdb/third_party/httplib)
 
 set(EXTENSION_SOURCES
-    src/httpfs_timeout_retry_extension.cpp
     src/file_system_timeout_retry_wrapper.cpp
-    src/timeout_retry_file_opener.cpp
+    src/httpfs_timeout_retry_extension.cpp
     src/record_file_system.cpp
     src/scoped_directory.cpp
+    src/timeout_retry_file_opener.cpp
     duckdb-httpfs/src/create_secret_functions.cpp
     duckdb-httpfs/src/crypto.cpp
     duckdb-httpfs/src/hash_functions.cpp
