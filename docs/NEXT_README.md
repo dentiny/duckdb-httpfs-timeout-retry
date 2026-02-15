@@ -1,10 +1,10 @@
-# Quack
+# HttpfsTimeoutRetry
 
 This repository is based on https://github.com/duckdb/extension-template, check it out if you want to build and ship your own DuckDB extension.
 
 ---
 
-This extension, Quack, allow you to ... <extension_goal>.
+This extension, HttpfsTimeoutRetry, allow you to ... <extension_goal>.
 
 
 ## Building
@@ -26,11 +26,11 @@ The main binaries that will be built are:
 ```sh
 ./build/release/duckdb
 ./build/release/test/unittest
-./build/release/extension/quack/quack.duckdb_extension
+./build/release/extension/httpfs_timeout_retry/httpfs_timeout_retry.duckdb_extension
 ```
 - `duckdb` is the binary for the duckdb shell with the extension code automatically loaded.
 - `unittest` is the test runner of duckdb. Again, the extension is already linked into the binary.
-- `quack.duckdb_extension` is the loadable binary as it would be distributed.
+- `httpfs_timeout_retry.duckdb_extension` is the loadable binary as it would be distributed.
 
 ## Running the extension
 To run the extension code, simply start the shell with `./build/release/duckdb`.
@@ -81,8 +81,8 @@ DuckDB. To specify a specific version, you can pass the version instead.
 
 After running these steps, you can install and load your extension using the regular INSTALL/LOAD commands in DuckDB:
 ```sql
-INSTALL quack;
-LOAD quack;
+INSTALL httpfs_timeout_retry;
+LOAD httpfs_timeout_retry;
 ```
 
 ## Setting up CLion
