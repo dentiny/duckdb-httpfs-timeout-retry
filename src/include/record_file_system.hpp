@@ -28,6 +28,13 @@ public:
 	unique_ptr<FileHandle> OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
 	                                        optional_ptr<FileOpener> opener) override;
 
+	// Override ListFilesExtended to record parameters
+	bool ListFilesExtended(const string &directory, const std::function<void(OpenFileInfo &info)> &callback,
+	                       optional_ptr<FileOpener> opener) override;
+
+	// Override RemoveFile to record parameters
+	void RemoveFile(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
+
 	// Get recorded parameters for a path
 	RecordedParams GetRecordedParams(const string &path) const;
 

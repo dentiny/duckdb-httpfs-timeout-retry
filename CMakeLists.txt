@@ -28,6 +28,7 @@ set(EXTENSION_SOURCES
     src/file_system_timeout_retry_wrapper.cpp
     src/timeout_retry_file_opener.cpp
     src/record_file_system.cpp
+    src/scoped_directory.cpp
     duckdb-httpfs/src/create_secret_functions.cpp
     duckdb-httpfs/src/crypto.cpp
     duckdb-httpfs/src/hash_functions.cpp

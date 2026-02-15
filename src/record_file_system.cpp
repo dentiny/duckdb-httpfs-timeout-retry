@@ -52,6 +52,18 @@ unique_ptr<FileHandle> RecordFileSystem::OpenFileExtended(const OpenFileInfo &pa
 	return LocalFileSystem::OpenFileExtended(path, flags, opener);
 }
 
+bool RecordFileSystem::ListFilesExtended(const string &directory,
+                                         const std::function<void(OpenFileInfo &info)> &callback,
+                                         optional_ptr<FileOpener> opener) {
+	RecordParams(directory, opener);
+	return LocalFileSystem::ListFilesExtended(directory, callback, opener);
+}
+
+void RecordFileSystem::RemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
+	RecordParams(filename, opener);
+	LocalFileSystem::RemoveFile(filename, opener);
+}
+
 RecordedParams RecordFileSystem::GetRecordedParams(const string &path) const {
 	lock_guard<mutex> lock(params_lock);
 	auto it = recorded_params.find(path);
