@@ -20,6 +20,9 @@ For example,
 Similarly, retry behavior should differ by operation type.
 This extension solves the problem by allowing users to configure different settings for different operations.
 
+This extension is **100% compatible** with the standard `httpfs` extension, so users don't need to change their code.
+The default configuration on timeout and retry also defaults to `httpfs` ones.
+
 ## Configuration
 
 ### Per-Operation Timeout Settings
@@ -54,16 +57,7 @@ SET httpfs_retries_read = 5; -- More retries for reads (idempotent, may hit cach
 SET httpfs_retries_write = 3;
 SET httpfs_retries_list = 3;
 SET httpfs_retries_delete = 2;
-SET httpfs_retries_connect = 5;
 ```
-
-## Compatibility
-
-This extension is **100% compatible** with the standard `httpfs` extension. It:
-
-- Automatically loads the `httpfs` extension if not already loaded
-- Maintains backward compatibility with existing `http_timeout` and `http_retries` settings
-- Falls back to global settings if per-operation settings are not configured
 
 ## Contributing
 
