@@ -97,8 +97,7 @@ public:
 	bool OnDiskFile(FileHandle &handle) override;
 
 	// Compressed file operations
-	unique_ptr<FileHandle> OpenCompressedFile(QueryContext context, unique_ptr<FileHandle> handle,
-	                                       bool write) override;
+	unique_ptr<FileHandle> OpenCompressedFile(QueryContext context, unique_ptr<FileHandle> handle, bool write) override;
 
 	// Disabled filesystem operations
 	void SetDisabledFileSystems(const vector<string> &names) override;

@@ -10,7 +10,7 @@
 namespace duckdb {
 
 FileSystemTimeoutRetryWrapper::FileSystemTimeoutRetryWrapper(unique_ptr<FileSystem> inner_filesystem,
-                                                              DatabaseInstance &db)
+                                                             DatabaseInstance &db)
     : inner_filesystem(std::move(inner_filesystem)), db(db) {
 }
 
@@ -19,7 +19,7 @@ std::string FileSystemTimeoutRetryWrapper::GetName() const {
 }
 
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
-                                                                optional_ptr<FileOpener> opener) {
+                                                               optional_ptr<FileOpener> opener) {
 	return OpenFileExtended(OpenFileInfo(path), flags, opener);
 }
 
@@ -80,7 +80,6 @@ bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
 	return ListFilesExtended(directory, wrapped_callback, opener);
 }
 
-
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                                        optional_ptr<FileOpener> opener) {
 	if (opener) {
@@ -97,8 +96,8 @@ bool FileSystemTimeoutRetryWrapper::SupportsOpenFileExtended() const {
 }
 
 bool FileSystemTimeoutRetryWrapper::ListFilesExtended(const string &directory,
-                                                       const std::function<void(OpenFileInfo &info)> &callback,
-                                                       optional_ptr<FileOpener> opener) {
+                                                      const std::function<void(OpenFileInfo &info)> &callback,
+                                                      optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
 		return inner_filesystem->ListFiles(directory, callback, &timeout_retry_opener);

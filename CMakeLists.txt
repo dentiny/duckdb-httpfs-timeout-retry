@@ -18,26 +18,29 @@ include_directories(src/include)
 include_directories(duckdb-httpfs/src/include)
 include_directories(duckdb/third_party/httplib)
 
-set(EXTENSION_SOURCES src/httpfs_timeout_retry_extension.cpp
-                      src/file_system_timeout_retry_wrapper.cpp
-                      src/timeout_retry_file_opener.cpp
-                      duckdb-httpfs/src/create_secret_functions.cpp
-                      duckdb-httpfs/src/crypto.cpp
-                      duckdb-httpfs/src/hash_functions.cpp
-                      duckdb-httpfs/src/hffs.cpp
-                      duckdb-httpfs/src/http_state.cpp
-                      duckdb-httpfs/src/httpfs.cpp
-                      duckdb-httpfs/src/httpfs_curl_client.cpp
-                      duckdb-httpfs/src/httpfs_extension.cpp
-                      duckdb-httpfs/src/httpfs_httplib_client.cpp
-                      duckdb-httpfs/src/s3fs.cpp)
+set(EXTENSION_SOURCES
+    src/httpfs_timeout_retry_extension.cpp
+    src/file_system_timeout_retry_wrapper.cpp
+    src/timeout_retry_file_opener.cpp
+    duckdb-httpfs/src/create_secret_functions.cpp
+    duckdb-httpfs/src/crypto.cpp
+    duckdb-httpfs/src/hash_functions.cpp
+    duckdb-httpfs/src/hffs.cpp
+    duckdb-httpfs/src/http_state.cpp
+    duckdb-httpfs/src/httpfs.cpp
+    duckdb-httpfs/src/httpfs_curl_client.cpp
+    duckdb-httpfs/src/httpfs_extension.cpp
+    duckdb-httpfs/src/httpfs_httplib_client.cpp
+    duckdb-httpfs/src/s3fs.cpp)
 
 build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
 build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})
 
 # Link OpenSSL and CURL in both the static library as the loadable extension
-target_link_libraries(${EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto CURL::libcurl)
-target_link_libraries(${LOADABLE_EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto CURL::libcurl)
+target_link_libraries(${EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto
+                      CURL::libcurl)
+target_link_libraries(${LOADABLE_EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto
+                      CURL::libcurl)
 
 install(
   TARGETS ${EXTENSION_NAME}

@@ -11,7 +11,7 @@ TimeoutRetryFileOpener::TimeoutRetryFileOpener(FileOpener &inner_opener_p, Httpf
 }
 
 SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &key, Value &result,
-                                                                  FileOpenerInfo &info) {
+                                                                 FileOpenerInfo &info) {
 	// Intercept http_timeout and http_retries to provide per-operation values
 	if (key == "http_timeout") {
 		// Try to get the per-operation timeout setting
