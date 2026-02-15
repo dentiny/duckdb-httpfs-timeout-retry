@@ -1,7 +1,5 @@
 #pragma once
 
-#include "duckdb/common/string.hpp"
-
 namespace duckdb {
 
 // Timeout setting names (in milliseconds)

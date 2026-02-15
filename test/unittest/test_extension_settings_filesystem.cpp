@@ -213,33 +213,6 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 		REQUIRE(params.retries == 6);
 	}
 
-	SECTION("Test MoveFile operation (WRITE)") {
-		string source_file = local_fs->JoinPath(test_dir.GetPath(), "__test_move_source__.txt");
-		string target_file = local_fs->JoinPath(test_dir.GetPath(), "__test_move_target__.txt");
-		{
-			auto fs = FileSystem::CreateLocal();
-			FileOpenFlags flags(FileFlags::FILE_FLAGS_WRITE | FileFlags::FILE_FLAGS_FILE_CREATE);
-			auto handle = fs->OpenFile(source_file, flags);
-			const char *data = "move test data";
-			handle->Write(const_cast<char *>(data), strlen(data));
-			handle->Sync();
-		}
-
-		db_config.SetOptionByName("httpfs_timeout_write_ms", Value::UBIGINT(35000));
-		db_config.SetOptionByName("httpfs_retries_write", Value::UBIGINT(8));
-		record_fs_ptr->ClearRecordedParams();
-		wrapped_fs->MoveFile(source_file, target_file, nullptr);
-
-		auto all_params = record_fs_ptr->GetAllRecordedParams();
-		REQUIRE(!all_params.empty());
-		auto params = all_params.begin()->second;
-		REQUIRE(params.timeout == 35);
-		REQUIRE(params.retries == 8);
-
-		// Cleanup
-		wrapped_fs->RemoveFile(target_file, nullptr);
-	}
-
 	SECTION("Test FileExists operation (STAT)") {
 		db_config.SetOptionByName("httpfs_timeout_stat_ms", Value::UBIGINT(14000));
 		db_config.SetOptionByName("httpfs_retries_stat", Value::UBIGINT(2));

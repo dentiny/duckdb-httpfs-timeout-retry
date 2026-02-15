@@ -20,27 +20,17 @@ class RecordFileSystem : public LocalFileSystem {
 public:
 	RecordFileSystem() = default;
 
-	// Override OpenFile to record parameters
 	unique_ptr<FileHandle> OpenFile(const string &path, FileOpenFlags flags,
 	                                optional_ptr<FileOpener> opener = nullptr) override;
-
-	// Override OpenFileExtended to record parameters
 	unique_ptr<FileHandle> OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
 	                                        optional_ptr<FileOpener> opener) override;
-
-	// Override ListFilesExtended to record parameters
 	bool ListFilesExtended(const string &directory, const std::function<void(OpenFileInfo &info)> &callback,
 	                       optional_ptr<FileOpener> opener) override;
-
-	// Override RemoveFile to record parameters
 	void RemoveFile(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
-
-	// Override additional operations to record parameters
 	bool DirectoryExists(const string &directory, optional_ptr<FileOpener> opener = nullptr) override;
 	void CreateDirectory(const string &directory, optional_ptr<FileOpener> opener = nullptr) override;
 	void CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener = nullptr) override;
 	void RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener = nullptr) override;
-	void MoveFile(const string &source, const string &target, optional_ptr<FileOpener> opener = nullptr) override;
 	bool FileExists(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
 	bool IsPipe(const string &filename, optional_ptr<FileOpener> opener = nullptr) override;
 	vector<OpenFileInfo> Glob(const string &path, FileOpener *opener = nullptr) override;

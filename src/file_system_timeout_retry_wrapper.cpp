@@ -14,46 +14,6 @@ FileSystemTimeoutRetryWrapper::FileSystemTimeoutRetryWrapper(unique_ptr<FileSyst
     : inner_filesystem(std::move(inner_filesystem)), db(db) {
 }
 
-string FileSystemTimeoutRetryWrapper::GetName() const {
-	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
-}
-
-unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
-                                                               optional_ptr<FileOpener> opener) {
-	return OpenFileExtended(OpenFileInfo(path), flags, opener);
-}
-
-void FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
-	inner_filesystem->Read(handle, buffer, nr_bytes, location);
-}
-
-void FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
-	inner_filesystem->Write(handle, buffer, nr_bytes, location);
-}
-
-int64_t FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes) {
-	return inner_filesystem->Read(handle, buffer, nr_bytes);
-}
-
-int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes) {
-	return inner_filesystem->Write(handle, buffer, nr_bytes);
-}
-int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
-	return inner_filesystem->GetFileSize(handle);
-}
-
-timestamp_t FileSystemTimeoutRetryWrapper::GetLastModifiedTime(FileHandle &handle) {
-	return inner_filesystem->GetLastModifiedTime(handle);
-}
-
-string FileSystemTimeoutRetryWrapper::GetVersionTag(FileHandle &handle) {
-	return inner_filesystem->GetVersionTag(handle);
-}
-
-FileType FileSystemTimeoutRetryWrapper::GetFileType(FileHandle &handle) {
-	return inner_filesystem->GetFileType(handle);
-}
-
 bool FileSystemTimeoutRetryWrapper::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
@@ -145,18 +105,6 @@ bool FileSystemTimeoutRetryWrapper::SupportsListFilesExtended() const {
 	return true;
 }
 
-void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
-                                             optional_ptr<FileOpener> opener) {
-	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::WRITE);
-		inner_filesystem->MoveFile(source, target, &timeout_retry_opener);
-		return;
-	}
-	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::WRITE);
-	inner_filesystem->MoveFile(source, target, &timeout_retry_opener);
-}
-
 bool FileSystemTimeoutRetryWrapper::FileExists(const string &filename, optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
@@ -198,6 +146,61 @@ bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, option
 	return inner_filesystem->TryRemoveFile(filename, &timeout_retry_opener);
 }
 
+vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
+		return inner_filesystem->Glob(path, &timeout_retry_opener);
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
+	return inner_filesystem->Glob(path, &timeout_retry_opener);
+}
+
+void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
+                                             optional_ptr<FileOpener> opener) {
+	inner_filesystem->MoveFile(source, target, opener);
+}
+
+string FileSystemTimeoutRetryWrapper::GetName() const {
+	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
+}
+
+unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
+                                                               optional_ptr<FileOpener> opener) {
+	return OpenFileExtended(OpenFileInfo(path), flags, opener);
+}
+
+void FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
+	inner_filesystem->Read(handle, buffer, nr_bytes, location);
+}
+
+void FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
+	inner_filesystem->Write(handle, buffer, nr_bytes, location);
+}
+
+int64_t FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes) {
+	return inner_filesystem->Read(handle, buffer, nr_bytes);
+}
+
+int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes) {
+	return inner_filesystem->Write(handle, buffer, nr_bytes);
+}
+int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
+	return inner_filesystem->GetFileSize(handle);
+}
+
+timestamp_t FileSystemTimeoutRetryWrapper::GetLastModifiedTime(FileHandle &handle) {
+	return inner_filesystem->GetLastModifiedTime(handle);
+}
+
+string FileSystemTimeoutRetryWrapper::GetVersionTag(FileHandle &handle) {
+	return inner_filesystem->GetVersionTag(handle);
+}
+
+FileType FileSystemTimeoutRetryWrapper::GetFileType(FileHandle &handle) {
+	return inner_filesystem->GetFileType(handle);
+}
+
 void FileSystemTimeoutRetryWrapper::FileSync(FileHandle &handle) {
 	inner_filesystem->FileSync(handle);
 }
@@ -220,16 +223,6 @@ string FileSystemTimeoutRetryWrapper::ExpandPath(const string &path) {
 
 string FileSystemTimeoutRetryWrapper::PathSeparator(const string &path) {
 	return inner_filesystem->PathSeparator(path);
-}
-
-vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
-	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
-		return inner_filesystem->Glob(path, &timeout_retry_opener);
-	}
-	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
-	return inner_filesystem->Glob(path, &timeout_retry_opener);
 }
 
 void FileSystemTimeoutRetryWrapper::RegisterSubSystem(unique_ptr<FileSystem> sub_fs) {

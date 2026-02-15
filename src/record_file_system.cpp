@@ -162,13 +162,6 @@ void RecordFileSystem::RemoveDirectory(const string &directory, optional_ptr<Fil
 	LocalFileSystem::RemoveDirectory(directory, opener);
 }
 
-void RecordFileSystem::MoveFile(const string &source, const string &target, optional_ptr<FileOpener> opener) {
-	if (opener) {
-		RecordParams(target, opener);
-	}
-	LocalFileSystem::MoveFile(source, target, opener);
-}
-
 bool RecordFileSystem::FileExists(const string &filename, optional_ptr<FileOpener> opener) {
 	if (opener) {
 		RecordParams(filename, opener);
