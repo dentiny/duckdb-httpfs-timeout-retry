@@ -61,26 +61,15 @@ void FileSystemTimeoutRetryWrapper::RemoveDirectory(const string &directory, opt
 	inner_filesystem->RemoveDirectory(directory, &timeout_retry_opener);
 }
 
-bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
-                                              const std::function<void(const string &, bool)> &callback,
-                                              FileOpener *opener) {
-	auto wrapped_callback = [this, &callback](OpenFileInfo &info) {
-		const bool is_dir = IsDirectory(info);
-		callback(info.path, is_dir);
-	};
-	return ListFilesExtended(directory, wrapped_callback, opener);
+unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
+                                                               optional_ptr<FileOpener> opener) {
+	return OpenFileExtended(OpenFileInfo(path), flags, opener);
 }
 
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                                        optional_ptr<FileOpener> opener) {
 	HttpfsOperationType operation_type = HttpfsOperationType::OPEN;
 	if (opener) {
-		// Check if opener is already a TimeoutRetryFileOpener and preserve its operation type
-		auto *existing_timeout_retry_opener = dynamic_cast<TimeoutRetryFileOpener *>(opener.get());
-		if (existing_timeout_retry_opener) {
-			// Use the existing opener directly since it's already configured
-			return inner_filesystem->OpenFile(path, flags, opener);
-		}
 		TimeoutRetryFileOpener wrapped_opener(*opener, operation_type);
 		return inner_filesystem->OpenFile(path, flags, &wrapped_opener);
 	}
@@ -91,6 +80,16 @@ unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const Ope
 
 bool FileSystemTimeoutRetryWrapper::SupportsOpenFileExtended() const {
 	return true;
+}
+
+bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
+                                              const std::function<void(const string &, bool)> &callback,
+                                              FileOpener *opener) {
+	auto wrapped_callback = [this, &callback](OpenFileInfo &info) {
+		const bool is_dir = IsDirectory(info);
+		callback(info.path, is_dir);
+	};
+	return ListFilesExtended(directory, wrapped_callback, opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::ListFilesExtended(const string &directory,
@@ -173,11 +172,6 @@ void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string 
 	inner_filesystem->MoveFile(source, target, opener);
 }
 
-unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
-                                                               optional_ptr<FileOpener> opener) {
-	return OpenFileExtended(OpenFileInfo(path), flags, opener);
-}
-
 void FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, int64_t nr_bytes, idx_t location) {
 	inner_filesystem->Read(handle, buffer, nr_bytes, location);
 }
@@ -193,6 +187,7 @@ int64_t FileSystemTimeoutRetryWrapper::Read(FileHandle &handle, void *buffer, in
 int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, int64_t nr_bytes) {
 	return inner_filesystem->Write(handle, buffer, nr_bytes);
 }
+
 int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
 	return inner_filesystem->GetFileSize(handle);
 }
