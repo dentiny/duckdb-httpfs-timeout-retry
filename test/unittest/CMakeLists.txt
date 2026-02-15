@@ -7,7 +7,7 @@ include_directories(${DuckDB_SOURCE_DIR}/test/include)
 
 file(GLOB_RECURSE RATE_LIMITER_UNITTEST_OBJECTS
      "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
-     
+
 include_directories(${CMAKE_SOURCE_DIR}/src/include)
 
 add_executable(unittest_httpfs_with_retry_timeout

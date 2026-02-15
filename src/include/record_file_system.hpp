@@ -22,7 +22,7 @@ public:
 
 	// Override OpenFile to record parameters
 	unique_ptr<FileHandle> OpenFile(const string &path, FileOpenFlags flags,
-	                                 optional_ptr<FileOpener> opener = nullptr) override;
+	                                optional_ptr<FileOpener> opener = nullptr) override;
 
 	// Override OpenFileExtended to record parameters
 	unique_ptr<FileHandle> OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
@@ -30,7 +30,7 @@ public:
 
 	// Get recorded parameters for a path
 	RecordedParams GetRecordedParams(const string &path) const;
-	
+
 	// Get all recorded parameters
 	unordered_map<string, RecordedParams> GetAllRecordedParams() const {
 		return recorded_params;
@@ -51,8 +51,6 @@ public:
 private:
 	mutable unordered_map<string, RecordedParams> recorded_params;
 	mutable mutex params_lock;
-
-	void RecordParams(const string &path, optional_ptr<FileOpener> opener);
 };
 
 } // namespace duckdb

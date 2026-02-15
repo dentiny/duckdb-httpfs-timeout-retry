@@ -15,7 +15,7 @@ constexpr uint64_t DEFAULT_TIMEOUT_MS = 30000;
 constexpr uint64_t DEFAULT_RETRIES = 3;
 constexpr uint64_t DEFAULT_RETRY_WAIT_MS = 100;
 constexpr double DEFAULT_RETRY_BACKOFF = 4.0;
-}
+} // namespace
 
 TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 	DBConfig config;
@@ -33,10 +33,6 @@ TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_read", "Maximum number of retries for reading files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	db_config.AddExtensionOption("httpfs_retry_wait_ms", "Initial wait time between retries (in milliseconds)",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRY_WAIT_MS));
-	db_config.AddExtensionOption("httpfs_retry_backoff", "Backoff factor for exponentially increasing retry wait time",
-	                             LogicalType {LogicalTypeId::FLOAT}, Value::FLOAT(DEFAULT_RETRY_BACKOFF));
 
 	// Create a record filesystem to capture parameters
 	auto record_fs = make_uniq<RecordFileSystem>();
@@ -54,7 +50,7 @@ TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 		FileOpenFlags flags(FileFlags::FILE_FLAGS_WRITE | FileFlags::FILE_FLAGS_FILE_CREATE);
 		auto handle = fs->OpenFile(test_file, flags);
 		const char *data = "test data";
-		handle->Write(const_cast<char*>(data), strlen(data));
+		handle->Write(const_cast<char *>(data), strlen(data));
 	}
 
 	SECTION("Test default timeout and retry settings") {
@@ -62,13 +58,13 @@ TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 		{
 			FileOpenFlags flags(FileFlags::FILE_FLAGS_READ);
 			auto handle = wrapped_fs->OpenFile(test_file, flags, nullptr);
-			
+
 			REQUIRE(handle != nullptr);
 		}
 
 		// Check that parameters were recorded (should use defaults)
 		auto params = record_fs_ptr->GetRecordedParams(test_file);
-		
+
 		// Default timeout should be 30 seconds (30000 ms / 1000)
 		REQUIRE(params.timeout == 30);
 		// Default retries should be 3
@@ -88,13 +84,13 @@ TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 		{
 			FileOpenFlags flags(FileFlags::FILE_FLAGS_READ);
 			auto handle = wrapped_fs->OpenFile(test_file, flags, nullptr);
-			
+
 			REQUIRE(handle != nullptr);
 		}
 
 		// Check that custom parameters were recorded
 		auto params = record_fs_ptr->GetRecordedParams(test_file);
-		
+
 		// Custom timeout should be 60 seconds (60000 ms / 1000)
 		REQUIRE(params.timeout == 60);
 		// Custom retries should be 5
@@ -118,12 +114,12 @@ TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 		{
 			FileOpenFlags flags(FileFlags::FILE_FLAGS_READ);
 			auto handle = wrapped_fs->OpenFile(test_file, flags, nullptr);
-			
+
 			REQUIRE(handle != nullptr);
 		}
 
 		auto open_params = record_fs_ptr->GetRecordedParams(test_file);
-		
+
 		// OPEN operation should use httpfs_timeout_open (10000 ms = 10 seconds)
 		REQUIRE(open_params.timeout == 10);
 		REQUIRE(open_params.retries == 2);
@@ -134,13 +130,13 @@ TEST_CASE("Extension settings are passed correctly", "[extension_settings]") {
 		{
 			DatabaseFileOpener opener(db_instance);
 			TimeoutRetryFileOpener timeout_retry_opener(opener, HttpfsOperationType::READ);
-			
+
 			// Record params by calling RecordParams directly with READ opener
 			record_fs_ptr->RecordParams(test_file, &timeout_retry_opener);
 		}
 
 		auto read_params = record_fs_ptr->GetRecordedParams(test_file);
-		
+
 		// READ operation should use httpfs_timeout_read (20000 ms = 20 seconds)
 		REQUIRE(read_params.timeout == 20);
 		REQUIRE(read_params.retries == 4);

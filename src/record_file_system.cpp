@@ -47,7 +47,7 @@ unique_ptr<FileHandle> RecordFileSystem::OpenFile(const string &path, FileOpenFl
 }
 
 unique_ptr<FileHandle> RecordFileSystem::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
-                                                         optional_ptr<FileOpener> opener) {
+                                                          optional_ptr<FileOpener> opener) {
 	RecordParams(path.path, opener);
 	return LocalFileSystem::OpenFileExtended(path, flags, opener);
 }
@@ -58,7 +58,7 @@ RecordedParams RecordFileSystem::GetRecordedParams(const string &path) const {
 	if (it != recorded_params.end()) {
 		return it->second;
 	}
-	return RecordedParams{};
+	return RecordedParams {};
 }
 
 } // namespace duckdb
