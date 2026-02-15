@@ -95,25 +95,33 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 
 unique_ptr<FileHandle> RecordFileSystem::OpenFile(const string &path, FileOpenFlags flags,
                                                   optional_ptr<FileOpener> opener) {
-	RecordParams(path, opener);
+	if (opener) {
+		RecordParams(path, opener);
+	}
 	return LocalFileSystem::OpenFile(path, flags, opener);
 }
 
 unique_ptr<FileHandle> RecordFileSystem::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                           optional_ptr<FileOpener> opener) {
-	RecordParams(path.path, opener);
+	if (opener) {
+		RecordParams(path.path, opener);
+	}
 	return LocalFileSystem::OpenFileExtended(path, flags, opener);
 }
 
 bool RecordFileSystem::ListFilesExtended(const string &directory,
                                          const std::function<void(OpenFileInfo &info)> &callback,
                                          optional_ptr<FileOpener> opener) {
-	RecordParams(directory, opener);
+	if (opener) {
+		RecordParams(directory, opener);
+	}
 	return LocalFileSystem::ListFilesExtended(directory, callback, opener);
 }
 
 void RecordFileSystem::RemoveFile(const string &filename, optional_ptr<FileOpener> opener) {
-	RecordParams(filename, opener);
+	if (opener) {
+		RecordParams(filename, opener);
+	}
 	LocalFileSystem::RemoveFile(filename, opener);
 }
 
@@ -127,47 +135,58 @@ RecordedParams RecordFileSystem::GetRecordedParams(const string &path) const {
 }
 
 bool RecordFileSystem::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
-	RecordParams(directory, opener);
+	if (opener) {
+		RecordParams(directory, opener);
+	}
 	return LocalFileSystem::DirectoryExists(directory, opener);
 }
 
 void RecordFileSystem::CreateDirectory(const string &directory, optional_ptr<FileOpener> opener) {
-	RecordParams(directory, opener);
+	if (opener) {
+		RecordParams(directory, opener);
+	}
 	LocalFileSystem::CreateDirectory(directory, opener);
 }
 
 void RecordFileSystem::CreateDirectoriesRecursive(const string &path, optional_ptr<FileOpener> opener) {
-	RecordParams(path, opener);
+	if (opener) {
+		RecordParams(path, opener);
+	}
 	LocalFileSystem::CreateDirectoriesRecursive(path, opener);
 }
 
 void RecordFileSystem::RemoveDirectory(const string &directory, optional_ptr<FileOpener> opener) {
-	RecordParams(directory, opener);
+	if (opener) {
+		RecordParams(directory, opener);
+	}
 	LocalFileSystem::RemoveDirectory(directory, opener);
 }
 
 void RecordFileSystem::MoveFile(const string &source, const string &target, optional_ptr<FileOpener> opener) {
-	// Record for target path (WRITE operation)
-	RecordParams(target, opener);
+	if (opener) {
+		RecordParams(target, opener);
+	}
 	LocalFileSystem::MoveFile(source, target, opener);
 }
 
 bool RecordFileSystem::FileExists(const string &filename, optional_ptr<FileOpener> opener) {
-	RecordParams(filename, opener);
+	if (opener) {
+		RecordParams(filename, opener);
+	}
 	return LocalFileSystem::FileExists(filename, opener);
 }
 
 bool RecordFileSystem::IsPipe(const string &filename, optional_ptr<FileOpener> opener) {
-	RecordParams(filename, opener);
+	if (opener) {
+		RecordParams(filename, opener);
+	}
 	return LocalFileSystem::IsPipe(filename, opener);
 }
 
 vector<OpenFileInfo> RecordFileSystem::Glob(const string &path, FileOpener *opener) {
 	if (opener) {
-		RecordParams(path, opener);
+		RecordParams(path, optional_ptr<FileOpener>(opener));
 	}
-	// When opener is null, the wrapper will create DatabaseFileOpener, but we can't record it here
-	// Tests should provide an opener to verify the operation type
 	return LocalFileSystem::Glob(path, opener);
 }
 

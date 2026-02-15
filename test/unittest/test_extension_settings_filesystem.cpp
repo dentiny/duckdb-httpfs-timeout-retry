@@ -1,6 +1,7 @@
 #include "catch/catch.hpp"
 #include "duckdb/common/file_system.hpp"
 #include "duckdb/main/database.hpp"
+#include "duckdb/main/database_file_opener.hpp"
 #include "file_system_timeout_retry_wrapper.hpp"
 #include "record_file_system.hpp"
 #include "scoped_directory.hpp"
@@ -57,9 +58,10 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	RecordFileSystem *record_fs_ptr = record_fs.get();
 	auto wrapped_fs = make_uniq<FileSystemTimeoutRetryWrapper>(std::move(record_fs), db_instance);
 
-	string test_file = "__test_file__.txt";
-	string test_file2 = "__test_file2__.txt";
 	ScopedDirectory test_dir("/tmp/__test_dir__");
+	auto local_fs = FileSystem::CreateLocal();
+	string test_file = local_fs->JoinPath(test_dir.GetPath(), "__test_file__.txt");
+	string test_file2 = local_fs->JoinPath(test_dir.GetPath(), "__test_file2__.txt");
 
 	{
 		auto fs = FileSystem::CreateLocal();
@@ -162,7 +164,7 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test CreateDirectory operation (CREATE_DIR)") {
-		string new_dir = "/tmp/__test_new_dir__";
+		string new_dir = local_fs->JoinPath(test_dir.GetPath(), "__test_new_dir__");
 		db_config.SetOptionByName("httpfs_timeout_create_dir_ms", Value::UBIGINT(18000));
 		db_config.SetOptionByName("httpfs_retries_create_dir", Value::UBIGINT(4));
 		record_fs_ptr->ClearRecordedParams();
@@ -179,7 +181,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test CreateDirectoriesRecursive operation (CREATE_DIR)") {
-		string new_dir = "/tmp/__test_nested_dir__/level1/level2";
+		string nested_base = local_fs->JoinPath(test_dir.GetPath(), "__test_nested_dir__");
+		string new_dir = local_fs->JoinPath(local_fs->JoinPath(nested_base, "level1"), "level2");
 		db_config.SetOptionByName("httpfs_timeout_create_dir_ms", Value::UBIGINT(22000));
 		db_config.SetOptionByName("httpfs_retries_create_dir", Value::UBIGINT(5));
 		record_fs_ptr->ClearRecordedParams();
@@ -192,11 +195,11 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 		REQUIRE(params.retries == 5);
 
 		// Cleanup
-		wrapped_fs->RemoveDirectory("/tmp/__test_nested_dir__", nullptr);
+		wrapped_fs->RemoveDirectory(nested_base, nullptr);
 	}
 
 	SECTION("Test RemoveDirectory operation (DELETE)") {
-		string new_dir = "/tmp/__test_remove_dir__";
+		string new_dir = local_fs->JoinPath(test_dir.GetPath(), "__test_remove_dir__");
 		wrapped_fs->CreateDirectory(new_dir, nullptr);
 		db_config.SetOptionByName("httpfs_timeout_delete_ms", Value::UBIGINT(28000));
 		db_config.SetOptionByName("httpfs_retries_delete", Value::UBIGINT(6));
@@ -211,8 +214,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test MoveFile operation (WRITE)") {
-		string source_file = "__test_move_source__.txt";
-		string target_file = "__test_move_target__.txt";
+		string source_file = local_fs->JoinPath(test_dir.GetPath(), "__test_move_source__.txt");
+		string target_file = local_fs->JoinPath(test_dir.GetPath(), "__test_move_target__.txt");
 		{
 			auto fs = FileSystem::CreateLocal();
 			FileOpenFlags flags(FileFlags::FILE_FLAGS_WRITE | FileFlags::FILE_FLAGS_FILE_CREATE);
@@ -266,9 +269,8 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	SECTION("Test Glob operation (LIST)") {
 		db_config.SetOptionByName("httpfs_timeout_list_ms", Value::UBIGINT(20000));
 		db_config.SetOptionByName("httpfs_retries_list", Value::UBIGINT(4));
-		DatabaseFileOpener database_opener(db_instance);
 		record_fs_ptr->ClearRecordedParams();
-		wrapped_fs->Glob(test_dir.GetPath() + "/*", &database_opener);
+		wrapped_fs->Glob(local_fs->JoinPath(test_dir.GetPath(), "*"), nullptr);
 
 		auto all_params = record_fs_ptr->GetAllRecordedParams();
 		REQUIRE(!all_params.empty());
