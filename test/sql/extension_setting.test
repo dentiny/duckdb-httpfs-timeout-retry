@@ -7,50 +7,50 @@ require httpfs_timeout_retry
 
 # Test that we can set and retrieve timeout settings (in milliseconds)
 statement ok
-SET httpfs_timeout_open = 45000;
+SET httpfs_timeout_open_ms = 45000;
 
 query I
-SELECT current_setting('httpfs_timeout_open');
+SELECT current_setting('httpfs_timeout_open_ms');
 ----
 45000
 
 statement ok
-SET httpfs_timeout_read = 90000;
+SET httpfs_timeout_read_ms = 90000;
 
 query I
-SELECT current_setting('httpfs_timeout_read');
+SELECT current_setting('httpfs_timeout_read_ms');
 ----
 90000
 
 statement ok
-SET httpfs_timeout_write = 120000;
+SET httpfs_timeout_write_ms = 120000;
 
 query I
-SELECT current_setting('httpfs_timeout_write');
+SELECT current_setting('httpfs_timeout_write_ms');
 ----
 120000
 
 statement ok
-SET httpfs_timeout_list = 60000;
+SET httpfs_timeout_list_ms = 60000;
 
 query I
-SELECT current_setting('httpfs_timeout_list');
+SELECT current_setting('httpfs_timeout_list_ms');
 ----
 60000
 
 statement ok
-SET httpfs_timeout_delete = 45000;
+SET httpfs_timeout_delete_ms = 45000;
 
 query I
-SELECT current_setting('httpfs_timeout_delete');
+SELECT current_setting('httpfs_timeout_delete_ms');
 ----
 45000
 
 statement ok
-SET httpfs_timeout_connect = 15000;
+SET httpfs_timeout_connect_ms = 15000;
 
 query I
-SELECT current_setting('httpfs_timeout_connect');
+SELECT current_setting('httpfs_timeout_connect_ms');
 ----
 15000
 
@@ -137,50 +137,50 @@ false
 
 # Test default values
 statement ok
-RESET httpfs_timeout_open;
+RESET httpfs_timeout_open_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_open');
+SELECT current_setting('httpfs_timeout_open_ms');
 ----
 30000
 
 statement ok
-RESET httpfs_timeout_read;
+RESET httpfs_timeout_read_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_read');
+SELECT current_setting('httpfs_timeout_read_ms');
 ----
 30000
 
 statement ok
-RESET httpfs_timeout_write;
+RESET httpfs_timeout_write_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_write');
+SELECT current_setting('httpfs_timeout_write_ms');
 ----
 30000
 
 statement ok
-RESET httpfs_timeout_list;
+RESET httpfs_timeout_list_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_list');
+SELECT current_setting('httpfs_timeout_list_ms');
 ----
 30000
 
 statement ok
-RESET httpfs_timeout_delete;
+RESET httpfs_timeout_delete_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_delete');
+SELECT current_setting('httpfs_timeout_delete_ms');
 ----
 30000
 
 statement ok
-RESET httpfs_timeout_connect;
+RESET httpfs_timeout_connect_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_connect');
+SELECT current_setting('httpfs_timeout_connect_ms');
 ----
 30000
 

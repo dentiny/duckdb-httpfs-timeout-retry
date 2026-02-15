@@ -24,15 +24,15 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	DatabaseInstance &db_instance = *db.instance;
 	auto &db_config = DBConfig::GetConfig(db_instance);
 
-	db_config.AddExtensionOption("httpfs_timeout_open", "Timeout for opening files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_read", "Timeout for reading files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_read_ms", "Timeout for reading files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_write", "Timeout for writing files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_write_ms", "Timeout for writing files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_list", "Timeout for listing directories (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_delete", "Timeout for deleting files (in milliseconds)",
+	db_config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
@@ -80,7 +80,7 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test custom timeout and retry settings") {
-		db_config.SetOptionByName("httpfs_timeout_open", Value::UBIGINT(60000));
+		db_config.SetOptionByName("httpfs_timeout_open_ms", Value::UBIGINT(60000));
 		db_config.SetOptionByName("httpfs_retries_open", Value::UBIGINT(5));
 		db_config.SetOptionByName("http_retry_wait_ms", Value::UBIGINT(200));
 		db_config.SetOptionByName("http_retry_backoff", Value::FLOAT(2.0));
@@ -100,7 +100,7 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test OPEN operation") {
-		db_config.SetOptionByName("httpfs_timeout_open", Value::UBIGINT(10000));
+		db_config.SetOptionByName("httpfs_timeout_open_ms", Value::UBIGINT(10000));
 		db_config.SetOptionByName("httpfs_retries_open", Value::UBIGINT(2));
 		record_fs_ptr->ClearRecordedParams();
 
@@ -116,7 +116,7 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test LIST operation") {
-		db_config.SetOptionByName("httpfs_timeout_list", Value::UBIGINT(15000));
+		db_config.SetOptionByName("httpfs_timeout_list_ms", Value::UBIGINT(15000));
 		db_config.SetOptionByName("httpfs_retries_list", Value::UBIGINT(6));
 		record_fs_ptr->ClearRecordedParams();
 		wrapped_fs->ListFiles(test_dir.GetPath(), [](const string &, bool) {}, nullptr);
@@ -130,7 +130,7 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	}
 
 	SECTION("Test DELETE operation") {
-		db_config.SetOptionByName("httpfs_timeout_delete", Value::UBIGINT(25000));
+		db_config.SetOptionByName("httpfs_timeout_delete_ms", Value::UBIGINT(25000));
 		db_config.SetOptionByName("httpfs_retries_delete", Value::UBIGINT(7));
 		record_fs_ptr->ClearRecordedParams();
 		wrapped_fs->RemoveFile(test_file2, nullptr);

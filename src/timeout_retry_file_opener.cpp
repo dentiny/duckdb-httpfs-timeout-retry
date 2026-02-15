@@ -94,19 +94,19 @@ Logger &TimeoutRetryFileOpener::GetLogger() const {
 string TimeoutRetryFileOpener::GetTimeoutSettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return "httpfs_timeout_open";
+		return "httpfs_timeout_open_ms";
 	case HttpfsOperationType::READ:
-		return "httpfs_timeout_read";
+		return "httpfs_timeout_read_ms";
 	case HttpfsOperationType::WRITE:
-		return "httpfs_timeout_write";
+		return "httpfs_timeout_write_ms";
 	case HttpfsOperationType::LIST:
-		return "httpfs_timeout_list";
+		return "httpfs_timeout_list_ms";
 	case HttpfsOperationType::DELETE:
-		return "httpfs_timeout_delete";
+		return "httpfs_timeout_delete_ms";
 	case HttpfsOperationType::CONNECT:
-		return "httpfs_timeout_connect";
+		return "httpfs_timeout_connect_ms";
 	default:
-		return "httpfs_timeout_open";
+		return "httpfs_timeout_open_ms";
 	}
 }
 
