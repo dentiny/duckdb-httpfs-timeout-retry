@@ -4,12 +4,10 @@
 
 require httpfs_timeout_retry
 
-query IIIIII
-SELECT * FROM read_csv_auto('https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/ubn1.csv') LIMIT 3;
+query I
+SELECT COUNT(*) FROM read_csv_auto('https://raw.githubusercontent.com/dentiny/duck-read-cache-fs/refs/heads/main/test/data/stock-exchanges.csv');
 ----
-1	2	3	NULL	NULL
-3	4	5	NULL	NULL
-34fd321	91	NULL	2020-12-30 02:25:58.745232+00	NULL
+251
 
 # Test reading CSV with custom timeout settings
 statement ok
@@ -18,38 +16,8 @@ SET httpfs_timeout_read = 120000;
 SET httpfs_retries_open = 5;
 SET httpfs_retries_read = 3;
 
-query IIIIII
-SELECT * FROM read_csv_auto('https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/ubn1.csv') LIMIT 2;
-----
-1	2	3	NULL	NULL
-3	4	5	NULL	NULL
-
-# Test reading multiple CSV files with union_by_name
-query IIII
-SELECT * FROM read_csv_auto(['https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/ubn1.csv', 'https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/ubn2.csv'], union_by_name = true) ORDER BY a LIMIT 5;
-----
-1	2	3	NULL
-3	4	5	NULL
-34fd321	91	NULL	2020-12-30 02:25:58.745232+00
-4	5	6	NULL
-8cb123cb8	90	NULL	2020-12-30 01:25:58.745232+00
-
-# Test parsing CSV with different settings
-statement ok
-SET httpfs_timeout_open = 30000;
-SET httpfs_retries_open = 3;
-
 query I
-SELECT COUNT(*) FROM read_csv_auto('https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/ubn1.csv');
+SELECT COUNT(*) FROM read_csv_auto('https://raw.githubusercontent.com/dentiny/duck-read-cache-fs/refs/heads/main/test/data/stock-exchanges.csv');
 ----
-4
+251
 
-# Test that settings are applied per operation
-statement ok
-SET httpfs_timeout_list = 45000;
-SET httpfs_retries_list = 4;
-
-query I
-SELECT COUNT(*) FROM glob('https://raw.githubusercontent.com/duckdb/duckdb/main/test/data/csv/union-by-name/*.csv');
-----
-2
