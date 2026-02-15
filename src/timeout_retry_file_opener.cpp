@@ -100,10 +100,6 @@ string TimeoutRetryFileOpener::GetTimeoutSettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
 		return HTTPFS_TIMEOUT_OPEN_MS;
-	case HttpfsOperationType::READ:
-		return HTTPFS_TIMEOUT_READ_MS;
-	case HttpfsOperationType::WRITE:
-		return HTTPFS_TIMEOUT_WRITE_MS;
 	case HttpfsOperationType::LIST:
 		return HTTPFS_TIMEOUT_LIST_MS;
 	case HttpfsOperationType::DELETE:
@@ -122,10 +118,6 @@ string TimeoutRetryFileOpener::GetRetrySettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
 		return HTTPFS_RETRIES_OPEN;
-	case HttpfsOperationType::READ:
-		return HTTPFS_RETRIES_READ;
-	case HttpfsOperationType::WRITE:
-		return HTTPFS_RETRIES_WRITE;
 	case HttpfsOperationType::LIST:
 		return HTTPFS_RETRIES_LIST;
 	case HttpfsOperationType::DELETE:

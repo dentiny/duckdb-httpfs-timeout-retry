@@ -39,14 +39,6 @@ void RecordFileSystem::RecordParams(const string &path, optional_ptr<FileOpener>
 		timeout_setting_name = HTTPFS_TIMEOUT_OPEN_MS;
 		retry_setting_name = HTTPFS_RETRIES_OPEN;
 		break;
-	case HttpfsOperationType::READ:
-		timeout_setting_name = HTTPFS_TIMEOUT_READ_MS;
-		retry_setting_name = HTTPFS_RETRIES_READ;
-		break;
-	case HttpfsOperationType::WRITE:
-		timeout_setting_name = HTTPFS_TIMEOUT_WRITE_MS;
-		retry_setting_name = HTTPFS_RETRIES_WRITE;
-		break;
 	case HttpfsOperationType::LIST:
 		timeout_setting_name = HTTPFS_TIMEOUT_LIST_MS;
 		retry_setting_name = HTTPFS_RETRIES_LIST;

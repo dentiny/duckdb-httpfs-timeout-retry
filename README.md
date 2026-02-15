@@ -15,7 +15,6 @@ The standard `httpfs` extension in DuckDB provides global timeout and retry sett
 
 For example,
 - list operation usually does range query, and should be expectedly taking more time than point query stat call
-- read request could potentially be served with cache and don't go through any data persistent layer, while it's non-avoidable for write operations
 
 Similarly, retry behavior should differ by operation type.
 This extension solves the problem by allowing users to configure different settings for different operations.
@@ -32,12 +31,6 @@ Configure timeouts (in milliseconds) for each operation type:
 ```sql
 -- File opening operations
 SET httpfs_timeout_open_ms = 30000;      -- 30 seconds
-
--- Read operations
-SET httpfs_timeout_read_ms = 45000;      -- 45 seconds
-
--- Write operations
-SET httpfs_timeout_write_ms = 120000;    -- 120 seconds
 
 -- List operations
 SET httpfs_timeout_list_ms = 60000;      -- 60 seconds
@@ -59,8 +52,6 @@ Configure maximum retries for each operation type:
 ```sql
 -- Retry counts for each operation
 SET httpfs_retries_open = 3;
-SET httpfs_retries_read = 5;
-SET httpfs_retries_write = 3;
 SET httpfs_retries_list = 3;
 SET httpfs_retries_delete = 2;
 SET httpfs_retries_stat = 2;

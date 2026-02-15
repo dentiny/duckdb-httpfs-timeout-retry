@@ -85,10 +85,6 @@ void LoadInternal(ExtensionLoader &loader) {
 	// Timeout settings for different HTTP operations (in milliseconds)
 	config.AddExtensionOption(HTTPFS_TIMEOUT_OPEN_MS, "Timeout for opening files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption(HTTPFS_TIMEOUT_READ_MS, "Timeout for reading files (in milliseconds)",
-	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	config.AddExtensionOption(HTTPFS_TIMEOUT_WRITE_MS, "Timeout for writing files (in milliseconds)",
-	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	config.AddExtensionOption(HTTPFS_TIMEOUT_LIST_MS, "Timeout for listing directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	config.AddExtensionOption(HTTPFS_TIMEOUT_DELETE_MS, "Timeout for deleting files (in milliseconds)",
@@ -100,10 +96,6 @@ void LoadInternal(ExtensionLoader &loader) {
 
 	// Retry settings for different HTTP operations
 	config.AddExtensionOption(HTTPFS_RETRIES_OPEN, "Maximum number of retries for opening files",
-	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption(HTTPFS_RETRIES_READ, "Maximum number of retries for reading files",
-	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	config.AddExtensionOption(HTTPFS_RETRIES_WRITE, "Maximum number of retries for writing files",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	config.AddExtensionOption(HTTPFS_RETRIES_LIST, "Maximum number of retries for listing directories",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));

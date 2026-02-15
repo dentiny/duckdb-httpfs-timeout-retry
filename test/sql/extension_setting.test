@@ -15,22 +15,6 @@ SELECT current_setting('httpfs_timeout_open_ms');
 45000
 
 statement ok
-SET httpfs_timeout_read_ms = 90000;
-
-query I
-SELECT current_setting('httpfs_timeout_read_ms');
-----
-90000
-
-statement ok
-SET httpfs_timeout_write_ms = 120000;
-
-query I
-SELECT current_setting('httpfs_timeout_write_ms');
-----
-120000
-
-statement ok
 SET httpfs_timeout_list_ms = 60000;
 
 query I
@@ -70,22 +54,6 @@ query I
 SELECT current_setting('httpfs_retries_open');
 ----
 5
-
-statement ok
-SET httpfs_retries_read = 4;
-
-query I
-SELECT current_setting('httpfs_retries_read');
-----
-4
-
-statement ok
-SET httpfs_retries_write = 6;
-
-query I
-SELECT current_setting('httpfs_retries_write');
-----
-6
 
 statement ok
 SET httpfs_retries_list = 3;
@@ -129,22 +97,6 @@ SELECT current_setting('httpfs_timeout_open_ms');
 30000
 
 statement ok
-RESET httpfs_timeout_read_ms;
-
-query I
-SELECT current_setting('httpfs_timeout_read_ms');
-----
-30000
-
-statement ok
-RESET httpfs_timeout_write_ms;
-
-query I
-SELECT current_setting('httpfs_timeout_write_ms');
-----
-30000
-
-statement ok
 RESET httpfs_timeout_list_ms;
 
 query I
@@ -183,22 +135,6 @@ query I
 SELECT current_setting('httpfs_retries_open');
 ----
 3
-
-statement ok
-RESET httpfs_retries_read;
-
-query I
-SELECT current_setting('httpfs_retries_read');
-----
-3
-
-statement ok
-RESET httpfs_retries_write;
-
-query I
-SELECT current_setting('httpfs_retries_write');
-----
-	3
 
 statement ok
 RESET httpfs_retries_stat;

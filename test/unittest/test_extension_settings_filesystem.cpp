@@ -27,10 +27,6 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 
 	db_config.AddExtensionOption("httpfs_timeout_open_ms", "Timeout for opening files (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_read_ms", "Timeout for reading files (in milliseconds)",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
-	db_config.AddExtensionOption("httpfs_timeout_write_ms", "Timeout for writing files (in milliseconds)",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_list_ms", "Timeout for listing directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_timeout_delete_ms", "Timeout for deleting files (in milliseconds)",
@@ -40,10 +36,6 @@ TEST_CASE("Extension settings via filesystem operations", "[extension_settings_f
 	db_config.AddExtensionOption("httpfs_timeout_create_dir_ms", "Timeout for creating directories (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_TIMEOUT_MS));
 	db_config.AddExtensionOption("httpfs_retries_open", "Maximum number of retries for opening files",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	db_config.AddExtensionOption("httpfs_retries_read", "Maximum number of retries for reading files",
-	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
-	db_config.AddExtensionOption("httpfs_retries_write", "Maximum number of retries for writing files",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
 	db_config.AddExtensionOption("httpfs_retries_list", "Maximum number of retries for listing directories",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value::UBIGINT(DEFAULT_RETRIES));
