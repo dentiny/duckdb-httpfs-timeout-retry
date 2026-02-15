@@ -20,6 +20,10 @@ public:
 	shared_ptr<HTTPUtil> &GetHTTPUtil() override;
 	Logger &GetLogger() const override;
 
+	HttpfsOperationType GetOperationType() const {
+		return operation_type;
+	}
+
 private:
 	FileOpener &inner_opener;
 	HttpfsOperationType operation_type;

@@ -82,13 +82,20 @@ bool FileSystemTimeoutRetryWrapper::ListFiles(const string &directory,
 
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFileExtended(const OpenFileInfo &path, FileOpenFlags flags,
                                                                        optional_ptr<FileOpener> opener) {
+	HttpfsOperationType operation_type = HttpfsOperationType::OPEN;
 	if (opener) {
-		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::OPEN);
-		return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
+		// Check if opener is already a TimeoutRetryFileOpener and preserve its operation type
+		auto *existing_timeout_retry_opener = dynamic_cast<TimeoutRetryFileOpener *>(opener.get());
+		if (existing_timeout_retry_opener) {
+			// Use the existing opener directly since it's already configured
+			return inner_filesystem->OpenFile(path, flags, opener);
+		}
+		TimeoutRetryFileOpener wrapped_opener(*opener, operation_type);
+		return inner_filesystem->OpenFile(path, flags, &wrapped_opener);
 	}
 	DatabaseFileOpener database_opener(db);
-	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::OPEN);
-	return inner_filesystem->OpenFile(path, flags, &timeout_retry_opener);
+	TimeoutRetryFileOpener wrapped_opener(database_opener, operation_type);
+	return inner_filesystem->OpenFile(path, flags, &wrapped_opener);
 }
 
 bool FileSystemTimeoutRetryWrapper::SupportsOpenFileExtended() const {
