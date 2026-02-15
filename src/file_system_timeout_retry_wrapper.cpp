@@ -14,6 +14,10 @@ FileSystemTimeoutRetryWrapper::FileSystemTimeoutRetryWrapper(unique_ptr<FileSyst
     : inner_filesystem(std::move(inner_filesystem)), db(db) {
 }
 
+//===--------------------------------------------------------------------===//
+// Wrap with timeout and retry opener logic
+//===--------------------------------------------------------------------===//
+
 bool FileSystemTimeoutRetryWrapper::DirectoryExists(const string &directory, optional_ptr<FileOpener> opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::STAT);
@@ -156,13 +160,17 @@ vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, Fil
 	return inner_filesystem->Glob(path, &timeout_retry_opener);
 }
 
-void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
-                                             optional_ptr<FileOpener> opener) {
-	inner_filesystem->MoveFile(source, target, opener);
-}
+//===--------------------------------------------------------------------===//
+// Delegate to internal filesystem
+//===--------------------------------------------------------------------===//
 
 string FileSystemTimeoutRetryWrapper::GetName() const {
 	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
+}
+
+void FileSystemTimeoutRetryWrapper::MoveFile(const string &source, const string &target,
+                                             optional_ptr<FileOpener> opener) {
+	inner_filesystem->MoveFile(source, target, opener);
 }
 
 unique_ptr<FileHandle> FileSystemTimeoutRetryWrapper::OpenFile(const string &path, FileOpenFlags flags,
