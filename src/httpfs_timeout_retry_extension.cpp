@@ -1,11 +1,14 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include <algorithm>
-
 #include "duckdb.hpp"
+#include "duckdb/common/algorithm.hpp"
 #include "duckdb/common/http_util.hpp"
-#include "duckdb/main/extension_manager.hpp"
+#include "duckdb/common/opener_file_system.hpp"
+#include "duckdb/common/string.hpp"
+#include "duckdb/common/vector.hpp"
+#include "duckdb/main/extension_helper.hpp"
 #include "duckdb/main/extension_install_info.hpp"
+#include "duckdb/main/extension_manager.hpp"
 #include "file_system_timeout_retry_wrapper.hpp"
 #include "httpfs_timeout_retry_extension.hpp"
 #include "httpfs_extension.hpp"
@@ -47,25 +50,25 @@ void EnsureHttpfsExtensionLoaded(ExtensionLoader &loader, DatabaseInstance &inst
 }
 
 void WrapHttpfsFileSystems(DatabaseInstance &instance) {
-	auto &fs = instance.GetFileSystem();
-	auto &extension_manager = ExtensionManager::Get(instance);
+	auto &opener_filesystem = instance.GetFileSystem().Cast<OpenerFileSystem>();
+	auto &vfs = opener_filesystem.GetFileSystem();
 
 	// Wrap httpfs filesystems with timeout/retry wrapper
-	auto http_fs = fs.ExtractSubSystem("HTTPFileSystem");
+	auto http_fs = vfs.ExtractSubSystem("HTTPFileSystem");
 	if (http_fs) {
-		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(http_fs)));
+		vfs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(http_fs), instance));
 	}
 
 	// Extract and wrap HuggingFaceFileSystem
-	auto hf_fs = fs.ExtractSubSystem("HuggingFaceFileSystem");
+	auto hf_fs = vfs.ExtractSubSystem("HuggingFaceFileSystem");
 	if (hf_fs) {
-		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(hf_fs)));
+		vfs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(hf_fs), instance));
 	}
 
 	// Extract and wrap S3FileSystem
-	auto s3_fs = fs.ExtractSubSystem("S3FileSystem");
+	auto s3_fs = vfs.ExtractSubSystem("S3FileSystem");
 	if (s3_fs) {
-		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(s3_fs)));
+		vfs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(s3_fs), instance));
 	}
 }
 
@@ -73,7 +76,7 @@ void LoadInternal(ExtensionLoader &loader) {
 	auto &instance = loader.GetDatabaseInstance();
 	auto &config = DBConfig::GetConfig(instance);
 
-	// Ensure httpfs extension is loaded to achive 100% compatibility with httpfs extension
+	// Ensure httpfs extension is loaded to achieve 100% compatibility with httpfs extension
 	EnsureHttpfsExtensionLoaded(loader, instance);
 
 	// Wrap all httpfs filesystems with timeout/retry wrapper
