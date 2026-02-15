@@ -14,7 +14,7 @@ FileSystemTimeoutRetryWrapper::FileSystemTimeoutRetryWrapper(unique_ptr<FileSyst
     : inner_filesystem(std::move(inner_filesystem)), db(db) {
 }
 
-std::string FileSystemTimeoutRetryWrapper::GetName() const {
+string FileSystemTimeoutRetryWrapper::GetName() const {
 	return StringUtil::Format("FileSystemTimeoutRetryWrapper - %s", inner_filesystem->GetName());
 }
 

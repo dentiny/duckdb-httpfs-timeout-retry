@@ -13,7 +13,7 @@ class FileSystemTimeoutRetryWrapper : public FileSystem {
 public:
 	FileSystemTimeoutRetryWrapper(unique_ptr<FileSystem> inner_filesystem, DatabaseInstance &db);
 
-	std::string GetName() const override;
+	string GetName() const override;
 
 	//===--------------------------------------------------------------------===//
 	// IO operations

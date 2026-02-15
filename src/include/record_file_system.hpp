@@ -51,7 +51,7 @@ public:
 	// Manually record parameters for testing
 	void RecordParams(const string &path, optional_ptr<FileOpener> opener);
 
-	std::string GetName() const override {
+	string GetName() const override {
 		return "RecordFileSystem";
 	}
 
