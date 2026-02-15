@@ -56,6 +56,7 @@ public:
 	}
 
 private:
+	// Maps from file path to recorded parameters.
 	mutable unordered_map<string, RecordedParams> recorded_params;
 	mutable mutex params_lock;
 };
