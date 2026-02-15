@@ -1,9 +1,10 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include <algorithm>
-
 #include "duckdb.hpp"
+#include "duckdb/common/algorithm.hpp"
 #include "duckdb/common/http_util.hpp"
+#include "duckdb/common/string.hpp"
+#include "duckdb/common/vector.hpp"
 #include "duckdb/main/extension_manager.hpp"
 #include "duckdb/main/extension_install_info.hpp"
 #include "file_system_timeout_retry_wrapper.hpp"
@@ -53,19 +54,19 @@ void WrapHttpfsFileSystems(DatabaseInstance &instance) {
 	// Wrap httpfs filesystems with timeout/retry wrapper
 	auto http_fs = fs.ExtractSubSystem("HTTPFileSystem");
 	if (http_fs) {
-		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(http_fs)));
+		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(http_fs), instance));
 	}
 
 	// Extract and wrap HuggingFaceFileSystem
 	auto hf_fs = fs.ExtractSubSystem("HuggingFaceFileSystem");
 	if (hf_fs) {
-		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(hf_fs)));
+		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(hf_fs), instance));
 	}
 
 	// Extract and wrap S3FileSystem
 	auto s3_fs = fs.ExtractSubSystem("S3FileSystem");
 	if (s3_fs) {
-		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(s3_fs)));
+		fs.RegisterSubSystem(make_uniq<FileSystemTimeoutRetryWrapper>(std::move(s3_fs), instance));
 	}
 }
 

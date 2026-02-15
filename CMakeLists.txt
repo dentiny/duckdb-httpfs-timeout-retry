@@ -17,7 +17,8 @@ include_directories(src/include)
 include_directories(duckdb-httpfs/src/include)
 
 set(EXTENSION_SOURCES src/httpfs_timeout_retry_extension.cpp
-                      src/file_system_timeout_retry_wrapper.cpp)
+                      src/file_system_timeout_retry_wrapper.cpp
+                      src/timeout_retry_file_opener.cpp)
 
 build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
 build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})

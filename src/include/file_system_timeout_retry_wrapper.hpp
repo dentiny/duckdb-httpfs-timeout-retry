@@ -1,6 +1,9 @@
 #pragma once
 
 #include "duckdb/common/file_system.hpp"
+#include "duckdb/common/string.hpp"
+#include "duckdb/common/vector.hpp"
+#include "duckdb/main/database.hpp"
 
 namespace duckdb {
 
@@ -8,7 +11,7 @@ namespace duckdb {
 // for specific IO operations (open, list, delete, etc.)
 class FileSystemTimeoutRetryWrapper : public FileSystem {
 public:
-	explicit FileSystemTimeoutRetryWrapper(unique_ptr<FileSystem> inner_filesystem);
+	FileSystemTimeoutRetryWrapper(unique_ptr<FileSystem> inner_filesystem, DatabaseInstance &db);
 
 	std::string GetName() const override;
 
@@ -98,7 +101,8 @@ public:
 	bool OnDiskFile(FileHandle &handle) override;
 
 	// Compressed file operations
-	unique_ptr<FileHandle> OpenCompressedFile(QueryContext context, unique_ptr<FileHandle> handle, bool write) override;
+	unique_ptr<FileHandle> OpenCompressedFile(QueryContext context, unique_ptr<FileHandle> handle,
+	                                       bool write) override;
 
 	// Disabled filesystem operations
 	void SetDisabledFileSystems(const vector<string> &names) override;
@@ -106,6 +110,7 @@ public:
 
 private:
 	unique_ptr<FileSystem> inner_filesystem;
+	DatabaseInstance &db;
 };
 
 } // namespace duckdb
