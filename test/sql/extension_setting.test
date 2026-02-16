@@ -87,67 +87,50 @@ SELECT current_setting('httpfs_retries_create_dir');
 ----
 5
 
-# Test default values
+# Test that RESET sets values to NULL (they will fallback to http_timeout/http_retries)
 statement ok
 RESET httpfs_timeout_file_operation_ms;
 
-query I
+query T
 SELECT current_setting('httpfs_timeout_file_operation_ms');
 ----
-30000
+NULL
 
 statement ok
 RESET httpfs_timeout_list_ms;
 
-query I
+query T
 SELECT current_setting('httpfs_timeout_list_ms');
 ----
-30000
+NULL
 
 statement ok
-RESET httpfs_timeout_delete_ms;
+RESET httpfs_retries_file_operation;
 
-query I
-SELECT current_setting('httpfs_timeout_delete_ms');
+query T
+SELECT current_setting('httpfs_retries_file_operation');
 ----
-	30000
+NULL
+
+# Test fallback to http_timeout/http_retries
+statement ok
+SET http_timeout = 60;
 
 statement ok
-RESET httpfs_timeout_stat_ms;
+RESET httpfs_timeout_file_operation_ms;
 
 query I
-SELECT current_setting('httpfs_timeout_stat_ms');
+SELECT current_setting('http_timeout');
 ----
-30000
+60
 
 statement ok
-RESET httpfs_timeout_create_dir_ms;
-
-query I
-SELECT current_setting('httpfs_timeout_create_dir_ms');
-----
-30000
+SET http_retries = 5;
 
 statement ok
 RESET httpfs_retries_file_operation;
 
 query I
-SELECT current_setting('httpfs_retries_file_operation');
+SELECT current_setting('http_retries');
 ----
-3
-
-statement ok
-RESET httpfs_retries_stat;
-
-query I
-SELECT current_setting('httpfs_retries_stat');
-----
-3
-
-statement ok
-RESET httpfs_retries_create_dir;
-
-query I
-SELECT current_setting('httpfs_retries_create_dir');
-----
-3
+5

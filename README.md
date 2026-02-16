@@ -1,6 +1,6 @@
 # DuckDB HTTPFS Timeout & Retry Extension
 
-A DuckDB extension that provides **per-operation timeout and retry configuration** for HTTP file system operations (HTTP, S3, HuggingFace). This extension extends the standard `httpfs` extension with fine-grained control over timeout and retry behavior for different types of operations.
+A DuckDB extension that provides per-operation timeout and retry configuration for HTTP file system operations (HTTP, S3, HuggingFace). This extension extends the standard `httpfs` extension with fine-grained control over timeout and retry behavior for different types of operations.
 
 ## Usage
 
@@ -11,15 +11,14 @@ LOAD httpfs_timeout_retry;
 
 ## Why This Extension?
 
-The standard `httpfs` extension in DuckDB provides global timeout and retry settings (via `http_timeout` and `http_retries`) that apply uniformly to **all** HTTP operations. However, different operations have fundamentally different characteristics and requirements.
+The standard `httpfs` extension in DuckDB provides global timeout and retry settings (via `http_timeout` and `http_retries`) that apply uniformly to all HTTP operations. However, different operations have fundamentally different characteristics and requirements.
 
-For example, list operation usually does range query, and should be expectedly taking more time than point query stat call
-
+For example, list operation usually does range query, and should be expectedly taking more time than point query stat call.
 Similarly, retry behavior should differ by operation type.
 This extension solves the problem by allowing users to configure different settings for different operations.
 
 This extension is **100% compatible** with the standard `httpfs` extension, so users don't need to change their code.
-The default configuration on timeout and retry also defaults to `httpfs` ones.
+The default configuration on timeout and retry the same as `httpfs` ones.
 
 ## Configuration
 
