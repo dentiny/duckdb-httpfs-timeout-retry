@@ -18,13 +18,13 @@ Similarly, retry behavior should differ by operation type.
 This extension solves the problem by allowing users to configure different settings for different operations.
 
 This extension is **100% compatible** with the standard `httpfs` extension, so users don't need to change their code.
-The default configuration on timeout and retry the same as `httpfs` ones.
+By default, all per-operation settings are `NULL` and automatically fallback to `http_timeout` and `http_retries` from the httpfs extension, ensuring seamless compatibility.
 
 ## Configuration
 
 ### Per-Operation Timeout Settings
 
-Configure timeouts (in milliseconds) for each operation type:
+Configure timeouts (in milliseconds) for each operation type. By default, all per-operation timeout settings are `NULL` and will fallback to the `http_timeout` setting from the httpfs extension.
 
 ```sql
 -- File operations (open, read, write), which applies to all file operations.
@@ -41,11 +41,14 @@ SET httpfs_timeout_stat_ms = 10000;      -- 10 seconds
 
 -- Directory creation operations
 SET httpfs_timeout_create_dir_ms = 20000; -- 20 seconds
+
+-- If a per-operation timeout is not set (NULL), it falls back to http_timeout
+SET http_timeout = 30000;  -- This will be used for operations without per-operation settings
 ```
 
 ### Per-Operation Retry Settings
 
-Configure maximum retries for each operation type:
+Configure maximum retries for each operation type. By default, all per-operation retry settings are `NULL` and will fallback to the `http_retries` setting from the httpfs extension.
 
 ```sql
 -- Retry counts for each operation
@@ -54,7 +57,21 @@ SET httpfs_retries_list = 3;
 SET httpfs_retries_delete = 2;
 SET httpfs_retries_stat = 2;
 SET httpfs_retries_create_dir = 3;
+
+-- If a per-operation retry is not set (NULL), it falls back to http_retries
+SET http_retries = 3;  -- This will be used for operations without per-operation settings
 ```
+
+### Fallback Behavior
+
+When a per-operation setting is `NULL` (the default), the extension automatically falls back to the corresponding httpfs extension setting:
+- `httpfs_timeout_*_ms` settings fallback to `http_timeout` (converted from seconds to milliseconds)
+- `httpfs_retries_*` settings fallback to `http_retries`
+
+This means you can:
+- Set `http_timeout` and `http_retries` globally, and all operations will use these values
+- Override specific operations by setting their per-operation settings
+- Change `http_timeout`/`http_retries` and have all non-overridden operations automatically use the new values
 
 ## Contributing
 

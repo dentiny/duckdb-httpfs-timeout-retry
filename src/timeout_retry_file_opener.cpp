@@ -25,8 +25,6 @@ SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &k
 				return inner_opener.TryGetCurrentSetting(key, result, info);
 			}
 			// Convert from milliseconds to seconds for http_timeout
-			// httpfs expects timeout in seconds, so we divide by 1000
-			// If timeout is less than 1000ms, we set it to 1 second minimum
 			uint64_t timeout_ms = result.GetValue<uint64_t>();
 			uint64_t timeout_seconds = (timeout_ms > 0 && timeout_ms < 1000) ? 1 : (timeout_ms / 1000);
 			result = Value::UBIGINT(timeout_seconds);
@@ -57,43 +55,8 @@ SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &k
 }
 
 SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &key, Value &result) {
-	// Intercept http_timeout and http_retries to provide per-operation values
-	if (key == "http_timeout") {
-		// Try to get the per-operation timeout setting
-		string op_timeout_key = GetTimeoutSettingName();
-		if (FileOpener::TryGetCurrentSetting(&inner_opener, op_timeout_key, result)) {
-			// If the per-operation setting is NULL, fallback to http_timeout
-			if (result.IsNull()) {
-				return inner_opener.TryGetCurrentSetting(key, result);
-			}
-			// Convert from milliseconds to seconds for http_timeout
-			// httpfs expects timeout in seconds, so we divide by 1000
-			// If timeout is less than 1000ms, we set it to 1 second minimum
-			uint64_t timeout_ms = result.GetValue<uint64_t>();
-			uint64_t timeout_seconds = (timeout_ms > 0 && timeout_ms < 1000) ? 1 : (timeout_ms / 1000);
-			result = Value::UBIGINT(timeout_seconds);
-			return SettingLookupResult(SettingScope::GLOBAL);
-		}
-		// Fall back to original http_timeout if per-operation setting not found
-		return inner_opener.TryGetCurrentSetting(key, result);
-	}
-
-	if (key == "http_retries") {
-		// Try to get the per-operation retry setting
-		string op_retry_key = GetRetrySettingName();
-		if (FileOpener::TryGetCurrentSetting(&inner_opener, op_retry_key, result)) {
-			// If the per-operation setting is NULL, fallback to http_retries
-			if (result.IsNull()) {
-				return inner_opener.TryGetCurrentSetting(key, result);
-			}
-			return SettingLookupResult(SettingScope::GLOBAL);
-		}
-		// Fall back to original http_retries if per-operation setting not found
-		return inner_opener.TryGetCurrentSetting(key, result);
-	}
-
-	// For all other settings, delegate to inner opener
-	return inner_opener.TryGetCurrentSetting(key, result);
+	FileOpenerInfo info;
+	return TryGetCurrentSetting(key, result, info);
 }
 
 optional_ptr<ClientContext> TimeoutRetryFileOpener::TryGetClientContext() {
