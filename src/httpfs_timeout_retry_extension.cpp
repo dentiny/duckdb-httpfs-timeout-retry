@@ -107,6 +107,9 @@ void LoadInternal(ExtensionLoader &loader) {
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
 	config.AddExtensionOption(HTTPFS_RETRIES_CREATE_DIR, "Maximum number of retries for creating directories",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
+
+	// Set extension description
+	loader.SetDescription("Provides per-operation timeout and retry configuration for HTTP file system operations.");
 }
 
 } // namespace
