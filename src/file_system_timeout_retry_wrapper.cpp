@@ -188,6 +188,10 @@ int64_t FileSystemTimeoutRetryWrapper::Write(FileHandle &handle, void *buffer, i
 	return inner_filesystem->Write(handle, buffer, nr_bytes);
 }
 
+FileMetadata FileSystemTimeoutRetryWrapper::Stats(FileHandle &handle) {
+	return inner_filesystem->Stats(handle);
+}
+
 int64_t FileSystemTimeoutRetryWrapper::GetFileSize(FileHandle &handle) {
 	return inner_filesystem->GetFileSize(handle);
 }
