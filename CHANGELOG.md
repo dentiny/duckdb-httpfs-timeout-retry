@@ -7,4 +7,3 @@
 ### Added
 
 - Add extension description
-
