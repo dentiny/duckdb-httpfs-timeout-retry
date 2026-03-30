@@ -1,6 +1,8 @@
 #include "file_system_timeout_retry_wrapper.hpp"
 
+#include "duckdb/common/enums/file_glob_options.hpp"
 #include "duckdb/common/file_system.hpp"
+#include "duckdb/common/multi_file/multi_file_list.hpp"
 #include "duckdb/common/string.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/common/vector.hpp"
@@ -152,11 +154,13 @@ bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, option
 vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
-		return inner_filesystem->Glob(path, &timeout_retry_opener);
+		auto result = inner_filesystem->Glob(path, FileGlobOptions::ALLOW_EMPTY, &timeout_retry_opener);
+		return result->GetAllFiles();
 	}
 	DatabaseFileOpener database_opener(db);
 	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::LIST);
-	return inner_filesystem->Glob(path, &timeout_retry_opener);
+	auto result = inner_filesystem->Glob(path, FileGlobOptions::ALLOW_EMPTY, &timeout_retry_opener);
+	return result->GetAllFiles();
 }
 
 //===--------------------------------------------------------------------===//
