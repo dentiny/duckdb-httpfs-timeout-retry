@@ -17,7 +17,7 @@ public:
 
 	optional_ptr<ClientContext> TryGetClientContext() override;
 	optional_ptr<DatabaseInstance> TryGetDatabase() override;
-	shared_ptr<HTTPUtil> &GetHTTPUtil() override;
+	HTTPUtil &GetHTTPUtil() override;
 	Logger &GetLogger() const override;
 
 	HttpfsOperationType GetOperationType() const {

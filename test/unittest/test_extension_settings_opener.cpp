@@ -7,8 +7,6 @@
 using namespace duckdb;
 
 namespace {
-constexpr uint64_t DEFAULT_TIMEOUT_MS = 30000;
-constexpr uint64_t DEFAULT_RETRIES = 3;
 
 void RegisterExtensionOptions(DBConfig &db_config) {
 	db_config.AddExtensionOption("httpfs_timeout_file_operation_ms",

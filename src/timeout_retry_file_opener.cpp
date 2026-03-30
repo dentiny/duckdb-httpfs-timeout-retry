@@ -67,7 +67,7 @@ optional_ptr<DatabaseInstance> TimeoutRetryFileOpener::TryGetDatabase() {
 	return inner_opener.TryGetDatabase();
 }
 
-shared_ptr<HTTPUtil> &TimeoutRetryFileOpener::GetHTTPUtil() {
+HTTPUtil &TimeoutRetryFileOpener::GetHTTPUtil() {
 	return inner_opener.GetHTTPUtil();
 }
 
