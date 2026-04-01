@@ -151,6 +151,17 @@ bool FileSystemTimeoutRetryWrapper::TryRemoveFile(const string &filename, option
 	return inner_filesystem->TryRemoveFile(filename, &timeout_retry_opener);
 }
 
+void FileSystemTimeoutRetryWrapper::RemoveFiles(const vector<string> &filenames, optional_ptr<FileOpener> opener) {
+	if (opener) {
+		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::DELETE);
+		inner_filesystem->RemoveFiles(filenames, &timeout_retry_opener);
+		return;
+	}
+	DatabaseFileOpener database_opener(db);
+	TimeoutRetryFileOpener timeout_retry_opener(database_opener, HttpfsOperationType::DELETE);
+	inner_filesystem->RemoveFiles(filenames, &timeout_retry_opener);
+}
+
 vector<OpenFileInfo> FileSystemTimeoutRetryWrapper::Glob(const string &path, FileOpener *opener) {
 	if (opener) {
 		TimeoutRetryFileOpener timeout_retry_opener(*opener, HttpfsOperationType::LIST);
