@@ -1,3 +1,15 @@
+## 0.1.0
+
+### Changed
+
+- Upgrade DuckDB, httpfs and extension-ci-tools to v1.5.2
+
+### Fixed
+
+- Add missing filesystem API ([#27])
+
+[#27]: https://github.com/dentiny/duckdb-httpfs-timeout-retry/pull/27
+
 ## 0.0.3
 
 ### Changed
