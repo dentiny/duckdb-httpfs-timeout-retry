@@ -35,6 +35,7 @@ include_directories(duckdb/third_party/httplib)
 
 set(EXTENSION_SOURCES
     src/file_system_timeout_retry_wrapper.cpp
+    src/httpfs_timeout_retry_functions.cpp
     src/httpfs_timeout_retry_extension.cpp
     src/timeout_retry_file_opener.cpp
     duckdb-httpfs/src/create_secret_functions.cpp

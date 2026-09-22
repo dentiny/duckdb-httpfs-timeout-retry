@@ -1,0 +1,16 @@
+# name: test/sql/httpfs_timeout_retry_metadata.test
+# description: test catalog metadata for httpfs_timeout_retry functions
+# group: [sql]
+
+require httpfs_timeout_retry
+
+query I
+SELECT count(*)
+FROM duckdb_functions()
+WHERE function_name = 'clear_httpfs_connection_cache'
+AND description IS NOT NULL
+AND length(examples) > 0
+AND length(categories) > 0
+AND parameters = [];
+----
+1

@@ -1,3 +1,10 @@
+## 0.1.4
+
+### Added
+
+- Added `clear_httpfs_connection_cache()` with a description, example,
+  parameter names, and categories in `duckdb_functions()`.
+
 ## 0.1.3
 
 ### Changed
