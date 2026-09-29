@@ -1,5 +1,9 @@
 ## 0.1.4
 
+### Changed
+
+- Update DuckDB and extension-ci-tools to `v1.5.6`.
+
 ### Added
 
 - Added `clear_httpfs_connection_cache()` with a description, example,
