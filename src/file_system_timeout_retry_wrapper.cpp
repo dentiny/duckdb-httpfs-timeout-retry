@@ -1,5 +1,6 @@
 #include "file_system_timeout_retry_wrapper.hpp"
 
+#include "duckdb/common/compressed_file_system.hpp"
 #include "duckdb/common/enums/file_glob_options.hpp"
 #include "duckdb/common/file_system.hpp"
 #include "duckdb/common/multi_file/multi_file_list.hpp"
@@ -251,8 +252,8 @@ void FileSystemTimeoutRetryWrapper::RegisterSubSystem(unique_ptr<FileSystem> sub
 	inner_filesystem->RegisterSubSystem(std::move(sub_fs));
 }
 
-void FileSystemTimeoutRetryWrapper::RegisterSubSystem(FileCompressionType compression_type, unique_ptr<FileSystem> fs) {
-	inner_filesystem->RegisterSubSystem(compression_type, std::move(fs));
+void FileSystemTimeoutRetryWrapper::RegisterCompressionFilesystem(unique_ptr<CompressedFileSystem> fs) {
+	inner_filesystem->RegisterCompressionFilesystem(std::move(fs));
 }
 
 void FileSystemTimeoutRetryWrapper::UnregisterSubSystem(const string &name) {
