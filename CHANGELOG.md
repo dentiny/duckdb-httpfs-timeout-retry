@@ -1,3 +1,11 @@
+## 0.2.0
+
+### Changed
+
+- Upgrade DuckDB to `v2.0.0`, httpfs to its compatible main commit, and extension-ci-tools to latest main.
+- Require C++17 and use string views for setting constants and Identifiers for SQL/settings APIs.
+- Clear cached connections through DuckDB's HTTP transport manager and delegate compression registration to its v2 API.
+
 ## 0.1.4
 
 ### Changed

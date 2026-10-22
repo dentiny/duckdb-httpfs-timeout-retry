@@ -1,6 +1,7 @@
 #pragma once
 
 #include "duckdb/common/file_opener.hpp"
+#include "duckdb/common/identifier.hpp"
 #include "duckdb/common/string.hpp"
 
 namespace duckdb {
@@ -12,8 +13,8 @@ class TimeoutRetryFileOpener : public FileOpener {
 public:
 	TimeoutRetryFileOpener(FileOpener &inner_opener_p, HttpfsOperationType operation_type_p);
 
-	SettingLookupResult TryGetCurrentSetting(const string &key, Value &result, FileOpenerInfo &info) override;
-	SettingLookupResult TryGetCurrentSetting(const string &key, Value &result) override;
+	SettingLookupResult TryGetCurrentSetting(const Identifier &key, Value &result, FileOpenerInfo &info) override;
+	SettingLookupResult TryGetCurrentSetting(const Identifier &key, Value &result) override;
 
 	optional_ptr<ClientContext> TryGetClientContext() override;
 	optional_ptr<DatabaseInstance> TryGetDatabase() override;
@@ -29,9 +30,9 @@ private:
 	HttpfsOperationType operation_type;
 
 	// Util to get per-operation timeout setting name
-	string GetTimeoutSettingName() const;
+	Identifier GetTimeoutSettingName() const;
 	// Util to get per-operation retry setting name
-	string GetRetrySettingName() const;
+	Identifier GetRetrySettingName() const;
 };
 
 } // namespace duckdb

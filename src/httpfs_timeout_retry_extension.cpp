@@ -1,7 +1,6 @@
 #define DUCKDB_EXTENSION_MAIN
 
-#include "duckdb/common/algorithm.hpp"
-#include "duckdb/common/http_util.hpp"
+#include <string_view>
 #include "duckdb/common/opener_file_system.hpp"
 #include "duckdb/common/string.hpp"
 #include "duckdb/common/vector.hpp"
@@ -18,19 +17,12 @@ namespace duckdb {
 
 namespace {
 
-constexpr const char *HTTPFS_EXTENSION = "httpfs";
-
-// Default values matching httpfs extension for compatibility
-constexpr uint64_t DEFAULT_TIMEOUT_MS = HTTPParams::DEFAULT_TIMEOUT_SECONDS * 1000;
-constexpr uint64_t DEFAULT_RETRIES = HTTPParams::DEFAULT_RETRIES;
-constexpr uint64_t DEFAULT_RETRY_WAIT_MS = HTTPParams::DEFAULT_RETRY_WAIT_MS;
-constexpr float DEFAULT_RETRY_BACKOFF = HTTPParams::DEFAULT_RETRY_BACKOFF;
+constexpr std::string_view HTTPFS_EXTENSION = "httpfs";
 
 // Whether `httpfs` extension has already been loaded.
 bool IsHttpfsExtensionLoaded(DatabaseInstance &db_instance) {
 	auto &extension_manager = db_instance.GetExtensionManager();
-	const auto loaded_extensions = extension_manager.GetExtensions();
-	return std::find(loaded_extensions.begin(), loaded_extensions.end(), HTTPFS_EXTENSION) != loaded_extensions.end();
+	return extension_manager.ExtensionIsLoaded(string(HTTPFS_EXTENSION));
 }
 
 // Ensure httpfs extension is loaded, loading it if necessary
@@ -42,7 +34,7 @@ void EnsureHttpfsExtensionLoaded(ExtensionLoader &loader, DatabaseInstance &inst
 
 		// Register into extension manager to keep compatibility as httpfs.
 		auto &extension_manager = ExtensionManager::Get(instance);
-		auto extension_active_load = extension_manager.BeginLoad(HTTPFS_EXTENSION);
+		auto extension_active_load = extension_manager.BeginLoad(ExtensionLoadOptions(string(HTTPFS_EXTENSION)));
 		// Manually fill in the extension install info to finalize extension load.
 		ExtensionInstallInfo extension_install_info;
 		extension_install_info.mode = ExtensionInstallMode::UNKNOWN;
@@ -84,29 +76,32 @@ void LoadInternal(ExtensionLoader &loader) {
 	WrapHttpfsFileSystems(instance);
 
 	// Timeout settings for different HTTP operations (in milliseconds)
-	config.AddExtensionOption(HTTPFS_TIMEOUT_FILE_OPERATION_MS,
+	config.AddExtensionOption(Identifier(HTTPFS_TIMEOUT_FILE_OPERATION_MS),
 	                          "Timeout for file operations (open/read/write) (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_TIMEOUT_LIST_MS, "Timeout for listing directories (in milliseconds)",
+	config.AddExtensionOption(Identifier(HTTPFS_TIMEOUT_LIST_MS), "Timeout for listing directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_TIMEOUT_DELETE_MS, "Timeout for deleting files (in milliseconds)",
+	config.AddExtensionOption(Identifier(HTTPFS_TIMEOUT_DELETE_MS), "Timeout for deleting files (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_TIMEOUT_STAT_MS, "Timeout for stat/metadata operations (in milliseconds)",
+	config.AddExtensionOption(Identifier(HTTPFS_TIMEOUT_STAT_MS),
+	                          "Timeout for stat/metadata operations (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_TIMEOUT_CREATE_DIR_MS, "Timeout for creating directories (in milliseconds)",
+	config.AddExtensionOption(Identifier(HTTPFS_TIMEOUT_CREATE_DIR_MS),
+	                          "Timeout for creating directories (in milliseconds)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
 
 	// Retry settings for different HTTP operations
-	config.AddExtensionOption(HTTPFS_RETRIES_FILE_OPERATION,
+	config.AddExtensionOption(Identifier(HTTPFS_RETRIES_FILE_OPERATION),
 	                          "Maximum number of retries for file operations (open/read/write)",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_RETRIES_LIST, "Maximum number of retries for listing directories",
+	config.AddExtensionOption(Identifier(HTTPFS_RETRIES_LIST), "Maximum number of retries for listing directories",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_RETRIES_DELETE, "Maximum number of retries for deleting files",
+	config.AddExtensionOption(Identifier(HTTPFS_RETRIES_DELETE), "Maximum number of retries for deleting files",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_RETRIES_STAT, "Maximum number of retries for stat/metadata operations",
+	config.AddExtensionOption(Identifier(HTTPFS_RETRIES_STAT), "Maximum number of retries for stat/metadata operations",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
-	config.AddExtensionOption(HTTPFS_RETRIES_CREATE_DIR, "Maximum number of retries for creating directories",
+	config.AddExtensionOption(Identifier(HTTPFS_RETRIES_CREATE_DIR),
+	                          "Maximum number of retries for creating directories",
 	                          LogicalType {LogicalTypeId::UBIGINT}, Value());
 
 	RegisterHttpfsTimeoutRetryFunctions(loader);

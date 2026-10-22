@@ -2,6 +2,7 @@
 #include "duckdb/common/file_opener.hpp"
 #include "duckdb/main/database.hpp"
 #include "duckdb/main/database_file_opener.hpp"
+#include "http/http_settings.hpp"
 #include "timeout_retry_file_opener.hpp"
 
 using namespace duckdb;
@@ -9,6 +10,7 @@ using namespace duckdb;
 namespace {
 
 void RegisterExtensionOptions(DBConfig &db_config) {
+	HTTPSettings::Register(db_config);
 	db_config.AddExtensionOption("httpfs_timeout_file_operation_ms",
 	                             "Timeout for file operations (open/read/write) (in milliseconds)",
 	                             LogicalType {LogicalTypeId::UBIGINT}, Value());

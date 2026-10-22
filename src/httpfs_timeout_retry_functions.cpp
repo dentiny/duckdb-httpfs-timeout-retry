@@ -4,8 +4,8 @@
 
 #include "duckdb.hpp"
 #include "duckdb/main/extension/extension_loader.hpp"
+#include "duckdb/main/http/http_transport_manager.hpp"
 #include "duckdb/parser/parsed_data/create_table_function_info.hpp"
-#include "httpfs_client.hpp"
 
 namespace duckdb {
 
@@ -13,12 +13,13 @@ namespace {
 
 void ClearHttpfsConnectionCache(ClientContext &context, TableFunctionInput &, DataChunk &) {
 	auto &config = DBConfig::GetConfig(context);
-	auto &httpfs_util = static_cast<HTTPFSUtil &>(config.GetHTTPUtil());
-	httpfs_util.ClearCachedConnections();
+	// Invalidating a session advances the provider's connection epoch and retires its cached clients.
+	auto session = config.GetHTTPTransportManager().CreateSession(nullptr, nullptr);
+	session.Invalidate();
 }
 
 unique_ptr<FunctionData> BindClearHttpfsConnectionCache(ClientContext &, TableFunctionBindInput &,
-                                                        vector<LogicalType> &return_types, vector<string> &names) {
+                                                        vector<LogicalType> &return_types, vector<Identifier> &names) {
 	return_types.emplace_back(LogicalType::BOOLEAN);
 	names.emplace_back("success");
 	return nullptr;

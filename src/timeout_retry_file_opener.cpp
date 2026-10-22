@@ -13,12 +13,12 @@ TimeoutRetryFileOpener::TimeoutRetryFileOpener(FileOpener &inner_opener_p, Httpf
     : inner_opener(inner_opener_p), operation_type(operation_type_p) {
 }
 
-SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &key, Value &result,
+SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const Identifier &key, Value &result,
                                                                  FileOpenerInfo &info) {
 	// Intercept http_timeout and http_retries to provide per-operation values
 	if (key == "http_timeout") {
 		// Try to get the per-operation timeout setting
-		string op_timeout_key = GetTimeoutSettingName();
+		const auto op_timeout_key = GetTimeoutSettingName();
 		if (FileOpener::TryGetCurrentSetting(&inner_opener, op_timeout_key, result, &info)) {
 			// If the per-operation setting is NULL, fallback to http_timeout
 			if (result.IsNull()) {
@@ -37,7 +37,7 @@ SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &k
 
 	if (key == "http_retries") {
 		// Try to get the per-operation retry setting
-		string op_retry_key = GetRetrySettingName();
+		const auto op_retry_key = GetRetrySettingName();
 		if (FileOpener::TryGetCurrentSetting(&inner_opener, op_retry_key, result, &info)) {
 			// If the per-operation setting is NULL, fallback to http_retries
 			if (result.IsNull()) {
@@ -54,7 +54,7 @@ SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &k
 	return inner_opener.TryGetCurrentSetting(key, result, info);
 }
 
-SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const string &key, Value &result) {
+SettingLookupResult TimeoutRetryFileOpener::TryGetCurrentSetting(const Identifier &key, Value &result) {
 	FileOpenerInfo info;
 	return TryGetCurrentSetting(key, result, info);
 }
@@ -75,36 +75,36 @@ Logger &TimeoutRetryFileOpener::GetLogger() const {
 	return inner_opener.GetLogger();
 }
 
-string TimeoutRetryFileOpener::GetTimeoutSettingName() const {
+Identifier TimeoutRetryFileOpener::GetTimeoutSettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return HTTPFS_TIMEOUT_FILE_OPERATION_MS;
+		return Identifier(HTTPFS_TIMEOUT_FILE_OPERATION_MS);
 	case HttpfsOperationType::LIST:
-		return HTTPFS_TIMEOUT_LIST_MS;
+		return Identifier(HTTPFS_TIMEOUT_LIST_MS);
 	case HttpfsOperationType::DELETE:
-		return HTTPFS_TIMEOUT_DELETE_MS;
+		return Identifier(HTTPFS_TIMEOUT_DELETE_MS);
 	case HttpfsOperationType::STAT:
-		return HTTPFS_TIMEOUT_STAT_MS;
+		return Identifier(HTTPFS_TIMEOUT_STAT_MS);
 	case HttpfsOperationType::CREATE_DIR:
-		return HTTPFS_TIMEOUT_CREATE_DIR_MS;
+		return Identifier(HTTPFS_TIMEOUT_CREATE_DIR_MS);
 	default:
 		throw InternalException("Unknown HttpfsOperationType in GetTimeoutSettingName: %d",
 		                        static_cast<int>(operation_type));
 	}
 }
 
-string TimeoutRetryFileOpener::GetRetrySettingName() const {
+Identifier TimeoutRetryFileOpener::GetRetrySettingName() const {
 	switch (operation_type) {
 	case HttpfsOperationType::OPEN:
-		return HTTPFS_RETRIES_FILE_OPERATION;
+		return Identifier(HTTPFS_RETRIES_FILE_OPERATION);
 	case HttpfsOperationType::LIST:
-		return HTTPFS_RETRIES_LIST;
+		return Identifier(HTTPFS_RETRIES_LIST);
 	case HttpfsOperationType::DELETE:
-		return HTTPFS_RETRIES_DELETE;
+		return Identifier(HTTPFS_RETRIES_DELETE);
 	case HttpfsOperationType::STAT:
-		return HTTPFS_RETRIES_STAT;
+		return Identifier(HTTPFS_RETRIES_STAT);
 	case HttpfsOperationType::CREATE_DIR:
-		return HTTPFS_RETRIES_CREATE_DIR;
+		return Identifier(HTTPFS_RETRIES_CREATE_DIR);
 	default:
 		throw InternalException("Unknown HttpfsOperationType in GetRetrySettingName: %d",
 		                        static_cast<int>(operation_type));

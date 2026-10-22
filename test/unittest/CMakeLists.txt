@@ -15,10 +15,12 @@ add_executable(unittest_httpfs_with_retry_timeout
 
 if(NOT WIN32
    AND NOT SUN
-   AND NOT ZOS)
+   AND NOT ZOS
+   AND NOT PREBUILT_BINARY)
   target_link_libraries(unittest_httpfs_with_retry_timeout test_helpers duckdb
                         ${EXTENSION_NAME})
 else()
   target_link_libraries(unittest_httpfs_with_retry_timeout test_helpers
-                        duckdb_static ${EXTENSION_NAME})
+                        duckdb_static)
+  link_extension_libraries(unittest_httpfs_with_retry_timeout "")
 endif()
