@@ -1,3 +1,10 @@
+## Unreleased
+
+### Fixed
+
+- Pin httpfs to the revision selected by DuckDB v2.0.1 to match its
+  FileOpenerInfo API.
+
 ## 0.2.1 - 2026-11-23
 
 ### Changed
