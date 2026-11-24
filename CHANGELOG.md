@@ -2,6 +2,8 @@
 
 ### Fixed
 
+- Inspect reset NULL-default overrides through `duckdb_settings()` in the
+  settings regression, matching DuckDB v2.0.1's unset-setting behavior.
 - Pin httpfs to the revision selected by DuckDB v2.0.1 to match its
   FileOpenerInfo API.
 
